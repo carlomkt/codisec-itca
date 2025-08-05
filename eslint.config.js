@@ -11,7 +11,16 @@ export default tseslint.config(
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        // Explicitly exclude dangerous globals
+        eval: 'off',
+        Function: 'off',
+        setTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearTimeout: 'readonly',
+        clearInterval: 'readonly',
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
