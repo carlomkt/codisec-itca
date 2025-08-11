@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Responsables - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="gestion-itca.html">Gestión ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html" class="active">Responsables</a></li>
+      <li><a href="#" id="logoutBtn">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Gestión de Responsables</h1>
+    <button id="nuevoResponsableBtn" class="btn-primary">Nuevo Responsable</button>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Cargo</th>
+          <th>Institución</th>
+          <th>Distrito</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="responsablesTableBody"></tbody>
+    </table>
+
+    <!-- Modal para crear/editar responsable -->
+    <dialog id="responsableModal">
+      <form method="dialog" id="responsableForm" class="form-modal">
+        <h2 id="modalTitle">Nuevo Responsable</h2>
+        
+        <label>Nombre:
+          <input type="text" id="nombreResponsable" required>
+        </label>
+
+        <label>Cargo:
+          <input type="text" id="cargoResponsable" required>
+        </label>
+
+        <label>Institución:
+          <input type="text" id="institucionResponsable" required>
+        </label>
+
+        <label>Distrito:
+          <select id="distritoResponsable" required>
+            <option value="">Seleccionar distrito</option>
+            <option value="Distrito Norte">Distrito Norte</option>
+            <option value="Distrito Sur">Distrito Sur</option>
+            <option value="Distrito Este">Distrito Este</option>
+            <option value="Distrito Oeste">Distrito Oeste</option>
+            <option value="Distrito Centro">Distrito Centro</option>
+          </select>
+        </label>
+
+        <label>Teléfono:
+          <input type="tel" id="telefonoResponsable" required>
+        </label>
+
+        <label>Email:
+          <input type="email" id="emailResponsable" required>
+        </label>
+
+        <menu>
+          <button value="cancel">Cancelar</button>
+          <button id="saveResponsableBtn" value="default">Guardar</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <!-- Modal para asignar actividades ITCA -->
+    <dialog id="asignarActividadesModal">
+      <form method="dialog" id="asignarActividadesForm" class="form-modal">
+        <h2 id="modalAsignarTitulo">Asignar Actividades ITCA</h2>
+        <p id="responsableSeleccionado"></p>
+
+        <label>Actividades disponibles:</label>
+        <div id="actividadesDisponibles" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 1rem; border-radius: 4px;">
+          <!-- Se cargan dinámicamente -->
+        </div>
+
+        <menu>
+          <button value="cancel">Cancelar</button>
+          <button id="guardarAsignacionBtn" value="default">Guardar Asignación</button>
+        </menu>
+      </form>
+    </dialog>
+  </main>
+
+  <script src="js/responsables.js"></script>
+</body>
+</html>

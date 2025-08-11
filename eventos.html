@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CODISEC - Eventos Preventivos</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="sidebar">
+    <h2>CODISEC</h2>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="eventos.html" class="active">Eventos</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="index.html" onclick="localStorage.clear()">Salir</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>Gestión de Eventos Preventivos</h1>
+    <form id="eventoForm">
+      <label>Programa</label>
+      <select id="programa" required>
+        <option value="GPAI">GPAI</option>
+        <option value="Escuela Segura">Escuela Segura</option>
+        <option value="Proyecto de Vida">Proyecto de Vida</option>
+      </select>
+      <label>Título</label>
+      <input type="text" id="titulo" required>
+      <label>Lugar</label>
+      <input type="text" id="lugar" required>
+      <label>Fecha</label>
+      <input type="date" id="fecha" required>
+      <label>Responsable</label>
+      <input type="text" id="responsable" required>
+      <button type="submit">Agregar Evento</button>
+    </form>
+
+    <h2>Listado de Eventos</h2>
+    <table id="tablaEventos">
+      <thead>
+        <tr>
+          <th>Programa</th>
+          <th>Título</th>
+          <th>Lugar</th>
+          <th>Fecha</th>
+          <th>Responsable</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script src="js/eventos.js"></script>
+</body>
+</html>

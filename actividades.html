@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITCA - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="gestion-itca.html">Gestión ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn" role="button">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Gestión ITCA</h1>
+    <p>Administra las actividades programadas y ejecutadas para el cumplimiento del ITCA.</p>
+
+    <div style="margin-bottom: 1.5rem;">
+      <button id="addRow">Agregar Actividad</button>
+      <button id="importExcel">Importar Excel</button>
+      <button id="loadSampleData">Cargar Datos de Ejemplo</button>
+      <button id="generatePDF">Generar Informe PDF</button>
+    </div>
+
+    <input type="file" id="excelFile" accept=".xlsx,.xls" style="display: none;">
+
+    <table id="itcaTable">
+      <thead>
+        <tr>
+          <th>Línea Estratégica</th>
+          <th>Actividad</th>
+          <th>Responsable</th>
+          <th>Fecha</th>
+          <th>Programada</th>
+          <th>Ejecutada</th>
+          <th>% Cumplimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="js/actividades.js"></script>
+  <script>
+    // Verificar login
+    const userData = JSON.parse(localStorage.getItem("codisecUser"));
+    if (!userData) {
+      window.location.href = "index.html";
+    }
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("codisecUser");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>

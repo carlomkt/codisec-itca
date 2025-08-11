@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Plataforma de Gestión Preventiva CODISEC</title>
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-logo">
+      <img src="images/logo-codisec.png" alt="Logo CODISEC" />
+    </div>
+    <h1 class="login-title">Plataforma de Gestión Preventiva CODISEC</h1>
+
+    <form id="loginForm">
+      <input type="text" id="username" name="username" placeholder="Usuario" required />
+      <input type="password" id="password" name="password" placeholder="Contraseña" required />
+      <div class="remember-section">
+        <label for="rememberMe" class="remember-label">
+          <input type="checkbox" id="rememberMe" name="rememberMe" />
+          Recordar contraseña
+        </label>
+      </div>
+      <button type="submit">Iniciar Sesión</button>
+    </form>
+
+    <div class="login-footer">
+      &copy; 2025 CODISEC - Todos los derechos reservados
+    </div>
+  </div>
+
+  <script>
+    // Cargar credenciales guardadas al cargar la página
+    document.addEventListener("DOMContentLoaded", function() {
+      const savedCredentials = localStorage.getItem("rememberedCredentials");
+      if (savedCredentials) {
+        const { username, password } = JSON.parse(savedCredentials);
+        document.getElementById("username").value = username;
+        document.getElementById("password").value = password;
+        document.getElementById("rememberMe").checked = true;
+      }
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const user = document.getElementById("username").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const remember = document.getElementById("rememberMe").checked;
+
+      // Ejemplo básico de validación (reemplazar con Supabase o Firebase en producción)
+      if (user === "admin" && pass === "1234") {
+        // Guardar o quitar credenciales según la opción
+        if (remember) {
+          localStorage.setItem("rememberedCredentials", JSON.stringify({ username: user, password: pass }));
+        } else {
+          localStorage.removeItem("rememberedCredentials");
+        }
+
+        localStorage.setItem("codisecUser", JSON.stringify({ user, role: "administrador" }));
+        window.location.href = "dashboard.html";
+      } else {
+        alert("Usuario o contraseña incorrectos.");
+      }
+    });
+  </script>
+</body>
+</html>
