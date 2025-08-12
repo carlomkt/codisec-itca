@@ -122,6 +122,55 @@ const ActividadesPage: React.FC = () => {
     if (w) w.document.write(`<html><head><title>${ev.name}</title></head><body>${html}</body></html>`);
   }
 
+  function uploadEvidenciasToServer(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const formData = new FormData();
+    Array.from(files).forEach(f => formData.append('files', f));
+    fetch('/api/itca/upload', { method: 'POST', headers: { ...(localStorage.getItem('authToken') ? { Authorization: `Bearer ${localStorage.getItem('authToken')}` } : {}) }, body: formData })
+      .then(r => r.json())
+      .then(res => {
+        const evs = (res.files || []) as { name: string; url: string; size: number; type: string }[];
+        setForm({ ...form, evidencias: evs });
+      })
+      .catch(() => alert('No se pudo subir evidencias'));
+  }
+
+  function importExcel(file: File) {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = String(reader.result);
+      const res = await fetch('/api/itca/import', { method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('authToken') ? { Authorization: `Bearer ${localStorage.getItem('authToken')}` } : {}) }, body: JSON.stringify({ workbookBase64: base64 }) });
+      if (!res.ok) return alert('No se pudo importar el Excel');
+      const { rows } = await res.json();
+      if (!Array.isArray(rows)) return alert('Formato no reconocido');
+      // Mapear filas a Actividad (los encabezados deben alinearse con tu hoja)
+      const mapped: Actividad[] = rows.map((r: any, i: number) => ({
+        id: Date.now() + i,
+        lineaEstrategica: String(r['Línea'] || r['Linea'] || r['linea'] || ''),
+        actividad: String(r['Actividad'] || r['actividad'] || ''),
+        responsable: String(r['Responsable'] || r['responsable'] || ''),
+        fecha: new Date().toISOString().split('T')[0],
+        objetivo: String(r['Objetivo'] || ''),
+        meta: String(r['Meta'] || ''),
+        indicador: String(r['Indicador'] || ''),
+        producto: String(r['Producto'] || ''),
+        aliados: String(r['Aliados'] || ''),
+        recursos: String(r['Recursos'] || ''),
+        fechaProgramada: r['Fecha Programada'] ? String(r['Fecha Programada']) : '',
+        fechaEjecucion: r['Fecha Ejecución'] ? String(r['Fecha Ejecución']) : '',
+        estado: String(r['Estado'] || 'Programado'),
+        observaciones: String(r['Observaciones'] || ''),
+        distrito: String(r['Distrito'] || ''),
+        poblacionObjetivo: String(r['Población Objetivo'] || r['Poblacion Objetivo'] || ''),
+        ubicacion: String(r['Ubicación'] || r['Ubicacion'] || ''),
+        evidencias: [],
+        trimestre: String(r['Trimestre'] || ''),
+      }));
+      setItems(prev => [...prev, ...mapped]);
+    };
+    reader.readAsDataURL(file);
+  }
+
   function exportCSV() {
     const rows = items.map(a => ({
       id: a.id,
@@ -192,6 +241,10 @@ const ActividadesPage: React.FC = () => {
         <div className="flex-1 max-w-xl">
           <label className="text-sm font-medium">Buscar</label>
           <input className="border rounded px-3 py-2 w-full" placeholder="Actividad, línea o responsable" value={filter} onChange={e => setFilter(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Importar Excel</label>
+          <input type="file" accept=".xlsx,.xls" onChange={e => e.target.files && importExcel(e.target.files[0])} />
         </div>
       </div>
 
@@ -324,15 +377,15 @@ const ActividadesPage: React.FC = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium">Evidencias (imágenes o PDF)</label>
-                <input type="file" accept="image/*,application/pdf" multiple onChange={e => onEvidenciasChange(e.target.files)} />
+                <label className="block text-sm font-medium">Evidencias en servidor</label>
+                <input type="file" accept="image/*,application/pdf" multiple onChange={e => uploadEvidenciasToServer(e.target.files)} />
                 {Array.isArray(form.evidencias) && form.evidencias.length > 0 && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                    {form.evidencias.map((ev: EvidenciaMeta, idx: number) => (
-                      <button key={idx} type="button" className="border rounded p-2 text-left hover:bg-gray-50" onClick={() => previewEvidencia(ev)}>
+                    {form.evidencias.map((ev: any, idx: number) => (
+                      <a key={idx} className="border rounded p-2 text-left hover:bg-gray-50 block" href={ev.url || ev.contentBase64} target="_blank" rel="noreferrer">
                         <div className="text-sm font-medium truncate">{ev.name}</div>
-                        <div className="text-xs text-gray-500">{(ev.size/1024).toFixed(1)} KB</div>
-                      </button>
+                        <div className="text-xs text-gray-500">{((ev.size || 0)/1024).toFixed(1)} KB</div>
+                      </a>
                     ))}
                   </div>
                 )}
