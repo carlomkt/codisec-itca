@@ -1,0 +1,321 @@
+/* ================================
+   CODISEC - Estilos Unificados
+   ================================ */
+:root {
+  --codisec-blue: #003366;
+  --codisec-white: #ffffff;
+  --codisec-red: #cc0000;
+  --codisec-gray-light: #f4f6f8;
+  --codisec-gray-dark: #333333;
+  --codisec-accent: #0077cc;
+  --codisec-shadow: rgba(0, 0, 0, 0.1);
+  --codisec-radius: 6px;
+  --codisec-transition: all 0.2s ease-in-out;
+}
+
+body {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--codisec-gray-light);
+  margin: 0;
+  padding: 0;
+  color: var(--codisec-gray-dark);
+}
+
+/*Navbar */
+nav {
+  background-color: var(--codisec-blue);
+  color: var(--codisec-white);
+  padding: 0.5rem 1rem;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+nav a {
+  color: var(--codisec-white);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+/* Contenedores principales */
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 1rem;
+}
+
+/* Botones */
+button, .btn {
+  background-color: var(--codisec-accent);
+  color: var(--codisec-white);
+  border: none;
+  border-radius: var(--codisec-radius);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: var(--codisec-transition);
+}
+
+button:hover, .btn:hover {
+  background-color: var(--codisec-blue);
+}
+
+/* Botón de peligro */
+.btn-danger {
+  background-color: var(--codisec-red);
+}
+
+.btn-danger:hover {
+  background-color: #a30000;
+}
+
+/* Estilos para quitar animaciones de color al pasar el cursor */
+table * {
+  transition: none !important; /* Quitar cualquier transición en las tablas */
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--codisec-gray-dark);
+  font-weight: 500;
+  transition: var(--codisec-transition);
+}
+
+.tab-button:hover {
+  background-color: var(--codisec-gray-light);
+}
+
+/* Estilos para plantillas de oficios */
+.plantillas-section {
+  background-color: var(--codisec-white);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: var(--codisec-radius);
+  box-shadow: 0 2px 4px var(--codisec-shadow);
+}
+
+.plantillas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn-template {
+  background: linear-gradient(135deg, var(--codisec-accent), var(--codisec-blue));
+  color: var(--codisec-white);
+  border: none;
+  border-radius: var(--codisec-radius);
+  padding: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--codisec-transition);
+  box-shadow: 0 2px 4px var(--codisec-shadow);
+}
+
+.btn-template:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--codisec-shadow);
+}
+
+/* Campos específicos de oficios */
+#camposSesiones, #camposEventos, #camposResponsables {
+  background-color: var(--codisec-gray-light);
+  padding: 1rem;
+  border-radius: var(--codisec-radius);
+  margin: 1rem 0;
+  border-left: 4px solid var(--codisec-accent);
+}
+
+/* Modal mejorado */
+.form-modal {
+  max-width: 800px;
+  width: 90vw;
+}
+
+.form-modal textarea {
+  min-height: 300px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+/* Tablas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--codisec-white);
+  box-shadow: 0 2px 6px var(--codisec-shadow);
+  border-radius: var(--codisec-radius);
+}
+
+/* Header del Dashboard */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(135deg, var(--codisec-blue) 0%, var(--codisec-accent) 100%);
+  color: var(--codisec-white);
+  padding: 2rem;
+  border-radius: var(--codisec-radius);
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px var(--codisec-shadow);
+}
+
+.dashboard-logo {
+  width: 120px;
+  height: auto;
+  background: var(--codisec-white);
+  padding: 1rem;
+  border-radius: var(--codisec-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-welcome h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.dashboard-slogan {
+  font-style: italic;
+  font-size: 1.1rem;
+  color: #e8f4fd;
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.user-welcome {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* Sección KPIs */
+.kpi-section {
+  margin-bottom: 3rem;
+}
+
+.kpi-section h2 {
+  color: var(--codisec-blue);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--codisec-accent);
+  padding-bottom: 0.5rem;
+}
+
+.kpi-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  background: var(--codisec-white);
+  padding: 1.5rem;
+  border-radius: var(--codisec-radius);
+  box-shadow: 0 4px 12px var(--codisec-shadow);
+  transition: var(--codisec-transition);
+  border-left: 4px solid;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.kpi-card.cumplimiento {
+  border-left-color: #28a745;
+}
+
+.kpi-card.eventos {
+  border-left-color: var(--codisec-accent);
+}
+
+.kpi-card.pendientes {
+  border-left-color: #ffc107;
+}
+
+.kpi-icon {
+  font-size: 2.5rem;
+  margin-right: 1rem;
+  opacity: 0.8;
+}
+
+.kpi-content h3 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--codisec-blue);
+}
+
+.kpi-content p {
+  margin: 0.5rem 0 0 0;
+  color: var(--codisec-gray-dark);
+  font-weight: 500;
+}
+
+/* Sección de Gráficos */
+.charts-section {
+  margin-bottom: 2rem;
+}
+
+.charts-section h2 {
+  color: var(--codisec-blue);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--codisec-accent);
+  padding-bottom: 0.5rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.chart-container {
+  background: var(--codisec-white);
+  padding: 1.5rem;
+  border-radius: var(--codisec-radius);
+  box-shadow: 0 4px 12px var(--codisec-shadow);
+}
+
+.chart-container h3 {
+  margin: 0 0 1rem 0;
+  color: var(--codisec-blue);
+  font-size: 1.2rem;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.chart-container canvas {
+  max-height: 300px !important;
+  width: 100% !important;
+}
+
+/* ================================
+   AGENDA - Estilos para seguimiento
+   ================================ */
+
+/* Pestañas */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Informes - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html" class="active">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Informes Trimestrales ITCA</h1>
+    <button id="nuevoInformeBtn" class="btn-primary">Nuevo Informe</button>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Trimestre</th>
+          <th>Año</th>
+          <th>Fecha Creación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="informesTableBody"></tbody>
+    </table>
+  </main>
+
+  <!-- Modal -->
+  <dialog id="informeModal">
+    <form method="dialog" id="informeForm" class="form-modal">
+      <h2 id="modalTitle">Nuevo Informe</h2>
+      <label>Trimestre:
+        <select id="trimestre" required>
+          <option value="1">1er Trimestre</option>
+          <option value="2">2do Trimestre</option>
+          <option value="3">3er Trimestre</option>
+          <option value="4">4to Trimestre</option>
+        </select>
+      </label>
+      <label>Año:
+        <input type="number" id="anio" required min="2020" max="2100">
+      </label>
+      <label>Contenido Resumen:
+        <textarea id="contenido" required></textarea>
+      </label>
+      <label>Estado:
+        <select id="estado" required>
+          <option value="Borrador">Borrador</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+      </label>
+
+      <menu>
+        <button value="cancel">Cancelar</button>
+        <button id="saveInformeBtn" value="default">Guardar</button>
+        <button type="button" id="pdfInformeBtn">Generar PDF</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="js/informes.js"></script>
+</body>
+</html>

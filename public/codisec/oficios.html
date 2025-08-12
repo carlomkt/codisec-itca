@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oficios - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="oficios.html" class="active">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Oficios</h1>
+    <div class="plantillas-section">
+      <h2>Plantillas Oficiales</h2>
+      <div class="plantillas-grid">
+        <button id="plantillaAliados" class="btn-template">
+          📋 Oficio 188 - Sesiones/Consultas
+        </button>
+        <button id="plantillaEventos" class="btn-template">
+          🎯 Oficio 338 - Eventos Preventivos
+        </button>
+        <button id="plantillaResponsables" class="btn-template">
+          👥 Oficio 211 - Responsables ITCA
+        </button>
+      </div>
+    </div>
+    <button id="nuevoOficioBtn" class="btn-primary">Nuevo Oficio Personalizado</button>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Destinatario</th>
+          <th>Asunto</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="oficiosTableBody"></tbody>
+    </table>
+  </main>
+
+  <!-- Modal -->
+  <dialog id="oficioModal">
+    <form method="dialog" id="oficioForm" class="form-modal">
+      <h2 id="modalTitle">Nuevo Oficio</h2>
+      <label>Fecha:
+        <input type="date" id="fecha" required>
+      </label>
+      <label>Destinatario:
+        <input type="text" id="destinatario" required>
+      </label>
+      <label>Asunto:
+        <input type="text" id="asunto" required>
+      </label>
+      
+      <label>Tipo de Oficio:
+        <select id="tipoOficio" required>
+          <option value="personalizado">Personalizado</option>
+          <option value="sesiones">Sesiones/Consultas (188)</option>
+          <option value="eventos">Eventos Preventivos (338)</option>
+          <option value="responsables">Responsables ITCA (211)</option>
+        </select>
+      </label>
+
+      <!-- Campos específicos para sesiones -->
+      <div id="camposSesiones" style="display:none;">
+        <label>Tipo de Sesión:
+          <select id="tipoSesion">
+            <option value="ordinaria">Sesión Ordinaria</option>
+            <option value="consulta">Consulta Pública</option>
+          </select>
+        </label>
+        <label>Fecha de Sesión:
+          <input type="datetime-local" id="fechaSesion">
+        </label>
+        <label>Lugar:
+          <input type="text" id="lugarSesion" placeholder="Local comunal, etc.">
+        </label>
+      </div>
+
+      <!-- Campos específicos para eventos -->
+      <div id="camposEventos" style="display:none;">
+        <label>Tipo de Evento:
+          <select id="tipoEvento">
+            <option value="capacitacion">Capacitación</option>
+            <option value="simulacro">Simulacro</option>
+            <option value="operativo">Operativo</option>
+            <option value="campana">Campaña Preventiva</option>
+          </select>
+        </label>
+        <label>Fecha del Evento:
+          <input type="datetime-local" id="fechaEvento">
+        </label>
+        <label>Población Objetivo:
+          <input type="text" id="poblacionObjetivo" placeholder="Estudiantes, comerciantes, etc.">
+        </label>
+      </div>
+
+      <!-- Campos específicos para responsables -->
+      <div id="camposResponsables" style="display:none;">
+        <label>Trimestre:
+          <select id="trimestre">
+            <option value="I">I Trimestre</option>
+            <option value="II">II Trimestre</option>
+            <option value="III">III Trimestre</option>
+            <option value="IV">IV Trimestre</option>
+          </select>
+        </label>
+        <label>Fecha Límite de Entrega:
+          <input type="date" id="fechaLimite">
+        </label>
+        <label>Responsable Específico:
+          <input type="text" id="responsableEspecifico" placeholder="Nombre del responsable">
+        </label>
+      </div>
+
+      <label>Contenido:
+        <textarea id="contenido" required rows="8"></textarea>
+      </label>
+      <label>Estado:
+        <select id="estado" required>
+          <option value="Borrador">Borrador</option>
+          <option value="Enviado">Enviado</option>
+        </select>
+      </label>
+
+      <menu>
+        <button value="cancel">Cancelar</button>
+        <button id="saveOficioBtn" value="default">Guardar</button>
+        <button type="button" id="pdfBtn">Generar PDF</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="js/oficios.js"></script>
+</body>
+</html>

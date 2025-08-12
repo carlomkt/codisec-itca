@@ -38,10 +38,10 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/agenda" element={<PageIframe title="Agenda" src="/external/codisec/agenda.html" />} />
-      <Route path="/distritos" element={<PageIframe title="Distritos" src="/external/codisec/distritos.html" />} />
-      <Route path="/responsables" element={<PageIframe title="Responsables" src="/external/codisec/responsables.html" />} />
-      <Route path="/oficios" element={<PageIframe title="Oficios" src="/external/codisec/oficios.html" />} />
+      <Route path="/agenda" element={<PageIframe title="Agenda" src="/codisec/agenda.html" />} />
+      <Route path="/distritos" element={<PageIframe title="Distritos" src="/codisec/distritos.html" />} />
+      <Route path="/responsables" element={<PageIframe title="Responsables" src="/codisec/responsables.html" />} />
+      <Route path="/oficios" element={<PageIframe title="Oficios" src="/codisec/oficios.html" />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
