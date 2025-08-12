@@ -3,7 +3,7 @@ services:
     name: codisec-api
     env: node
     plan: free
-    buildCommand: npm ci && npx prisma generate && npx prisma db push && npx tsc -p tsconfig.node.json
+    buildCommand: npm install --no-audit --no-fund && npm run build:server
     startCommand: node dist-server/server/index.js
     envVars:
       - key: DATABASE_URL
