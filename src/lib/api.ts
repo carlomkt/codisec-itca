@@ -1,6 +1,6 @@
 export async function fetchJSON<T>(url: string, fallbackKey?: string, fallbackDefault?: T): Promise<T> {
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: authHeaders() });
     if (!res.ok) throw new Error('Bad status');
     return (await res.json()) as T;
   } catch {
@@ -18,10 +18,26 @@ export async function fetchJSON<T>(url: string, fallbackKey?: string, fallbackDe
 
 export async function postJSON<T>(url: string, body: T, fallbackKey?: string) {
   try {
-    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) });
   } catch {
     if (fallbackKey) {
       localStorage.setItem(fallbackKey, JSON.stringify(body));
     }
   }
+}
+
+export function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('authToken');
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+export async function ensureDevToken() {
+  if (localStorage.getItem('authToken')) return;
+  try {
+    const res = await fetch('/api/dev-token');
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.token) localStorage.setItem('authToken', data.token);
+    }
+  } catch {}
 }

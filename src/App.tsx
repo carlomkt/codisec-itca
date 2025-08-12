@@ -1,6 +1,7 @@
 import React, { useEffect, Suspense, lazy } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { AgendaPage } from './features/agenda';
+import { ensureDevToken } from './lib/api';
 
 const DistritosPage = lazy(() => import('./features/distritos/DistritosPage'));
 const ResponsablesPage = lazy(() => import('./features/responsables/ResponsablesPage'));
@@ -50,6 +51,7 @@ const App: React.FC = () => {
         );
       }
     } catch (err) {}
+    ensureDevToken();
   }, []);
 
   return (

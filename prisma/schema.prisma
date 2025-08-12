@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id            String   @id
+  title         String
+  start         DateTime
+  extendedProps Json
+}
+
+model Distrito {
+  id           String @id
+  nombre       String
+  responsable  String
+  actividades  String
+  estado       String
+}
+
+model Responsable {
+  id          String @id
+  nombre      String
+  cargo       String
+  institucion String
+  distrito    String
+  telefono    String
+  email       String
+}
+
+model ActividadITCA {
+  id               Int     @id
+  lineaEstrategica String
+  actividad        String
+  responsable      String
+  fecha            DateTime
+}
+
+model Oficio {
+  id           String   @id
+  fecha        DateTime
+  destinatario String
+  asunto       String
+  contenido    String
+  estado       String
+  tipo         String
+}
