@@ -6,26 +6,12 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 export default defineConfig({
   plugins: [
     react(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'external/codisec',
-          dest: '.',
-        },
-      ],
-    }),
+    viteStaticCopy({ targets: [{ src: 'external/codisec', dest: '.' }] }),
   ],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
+  optimizeDeps: { exclude: ['lucide-react'] },
   server: {
     host: true,
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5175',
-        changeOrigin: true,
-      },
-    },
+    proxy: { '/api': { target: 'http://localhost:5175', changeOrigin: true } },
   },
 });
