@@ -131,8 +131,28 @@ async function seedCatalog() {
   }
   const countEstados = await prisma.catalogItem.count({ where: { type: 'estados' } });
   if (countEstados === 0) {
-    const estados = ['Programado','En Proceso','Completado','Cancelado'];
+    const estados = ['Confirmado','Pendiente','Realizado','Postergado','Cancelado'];
     await prisma.catalogItem.createMany({ data: estados.map((v, i) => ({ type: 'estados', value: v, order: i })) });
+  }
+  const countPublicos = await prisma.catalogItem.count({ where: { type: 'publicos' } });
+  if (countPublicos === 0) {
+    const publicos = ['Estudiantes','Docentes','Padres','Comunidad'];
+    await prisma.catalogItem.createMany({ data: publicos.map((v, i) => ({ type: 'publicos', value: v, order: i })) });
+  }
+  const countNiveles = await prisma.catalogItem.count({ where: { type: 'niveles' } });
+  if (countNiveles === 0) {
+    const niveles = ['Inicial','Primaria','Secundaria','Superior'];
+    await prisma.catalogItem.createMany({ data: niveles.map((v, i) => ({ type: 'niveles', value: v, order: i })) });
+  }
+  const countTurnos = await prisma.catalogItem.count({ where: { type: 'turnos' } });
+  if (countTurnos === 0) {
+    const turnos = ['Mañana','Tarde','Noche'];
+    await prisma.catalogItem.createMany({ data: turnos.map((v, i) => ({ type: 'turnos', value: v, order: i })) });
+  }
+  const countIE = await prisma.catalogItem.count({ where: { type: 'ie' } });
+  if (countIE === 0) {
+    const ies = ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen'];
+    await prisma.catalogItem.createMany({ data: ies.map((v, i) => ({ type: 'ie', value: v, order: i })) });
   }
 }
 seedCatalog().catch(() => {});

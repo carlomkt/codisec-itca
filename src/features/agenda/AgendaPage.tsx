@@ -6,6 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { Chart, PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { fetchJSON, postJSON } from '../../lib/api';
 import { z } from 'zod';
+import { authHeaders } from '../../lib/api';
 
 Chart.register(PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -52,11 +53,6 @@ function getEventColor(estado: EventoEstado): string {
   return colores[estado] ?? '#6c757d';
 }
 
-const ESTADOS: EventoEstado[] = ['Confirmado','Pendiente','Realizado','Postergado','Cancelado'];
-const NIVELES = ['Inicial','Primaria','Secundaria','Superior'];
-const TURNOS = ['Mañana','Tarde','Noche'];
-const PUBLICOS = ['Estudiantes','Docentes','Padres','Comunidad'];
-
 const EventFormSchema = z.object({
   fecha: z.string().min(1,'Fecha requerida'),
   hora: z.string().min(1,'Hora requerida'),
@@ -87,6 +83,30 @@ const AgendaPage: React.FC = () => {
     asistentes: undefined, nivelEducativo: '', turno: '', gradoSeccion: '', direccion: '',
   });
   const [errors, setErrors] = useState<Record<string,string>>({});
+  const [publicos, setPublicos] = useState<string[]>([]);
+  const [niveles, setNiveles] = useState<string[]>([]);
+  const [turnos, setTurnos] = useState<string[]>([]);
+  const [estados, setEstados] = useState<string[]>([]);
+  const [ies, setIEs] = useState<string[]>([]);
+  const [responsablesCat, setResponsablesCat] = useState<string[]>([]);
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/catalog/publicos').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/catalog/niveles').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/catalog/turnos').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/catalog/estados').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/catalog/ie').then(r=>r.json()).catch(()=>[]),
+      fetchJSON<any[]>('/api/responsables','responsables',[])
+    ]).then(([pub,niv,tur,est,iesData,resps])=>{
+      setPublicos(pub.map((x:any)=>x.value));
+      setNiveles(niv.map((x:any)=>x.value));
+      setTurnos(tur.map((x:any)=>x.value));
+      setEstados(est.map((x:any)=>x.value));
+      setIEs(iesData.map((x:any)=>x.value));
+      setResponsablesCat(resps.map(r=>r.nombre));
+    });
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -214,21 +234,27 @@ const AgendaPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium">Institución Educativa</label>
-                <input className="border rounded px-3 py-2 w-full" value={form.institucion} onChange={e => setForm({ ...form, institucion: e.target.value })} />
+                <input list="ies" className="border rounded px-3 py-2 w-full" value={form.institucion} onChange={e => setForm({ ...form, institucion: e.target.value })} />
+                <datalist id="ies">
+                  {ies.map(ie => <option key={ie} value={ie} />)}
+                </datalist>
                 {errors.institucion && <div className="text-red-600 text-xs">{errors.institucion}</div>}
               </div>
               <div>
                 <label className="block text-sm font-medium">Público</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.publico} onChange={e => setForm({ ...form, publico: e.target.value })}>
                   <option value="">Seleccione…</option>
-                  {PUBLICOS.map(p => <option key={p} value={p}>{p}</option>)}
+                  {publicos.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
                 {errors.publico && <div className="text-red-600 text-xs">{errors.publico}</div>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium">Responsable</label>
-                <input className="border rounded px-3 py-2 w-full" value={form.responsable} onChange={e => setForm({ ...form, responsable: e.target.value })} />
+                <input list="responsables" className="border rounded px-3 py-2 w-full" value={form.responsable} onChange={e => setForm({ ...form, responsable: e.target.value })} />
+                <datalist id="responsables">
+                  {responsablesCat.map(r => <option key={r} value={r} />)}
+                </datalist>
                 {errors.responsable && <div className="text-red-600 text-xs">{errors.responsable}</div>}
               </div>
               <div>
@@ -243,8 +269,8 @@ const AgendaPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium">Estado</label>
-                <select className="border rounded px-3 py-2 w-full" value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value as EventoEstado })}>
-                  {ESTADOS.map(s => <option key={s} value={s}>{s}</option>)}
+                <select className="border rounded px-3 py-2 w-full" value={form.estado} onChange={e => setForm({ ...form, estado: e.target.value as any })}>
+                  {estados.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
 
@@ -252,14 +278,14 @@ const AgendaPage: React.FC = () => {
                 <label className="block text-sm font-medium">Nivel educativo</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.nivelEducativo || ''} onChange={e => setForm({ ...form, nivelEducativo: e.target.value })}>
                   <option value="">Seleccione…</option>
-                  {NIVELES.map(n => <option key={n} value={n}>{n}</option>)}
+                  {niveles.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium">Turno</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.turno || ''} onChange={e => setForm({ ...form, turno: e.target.value })}>
                   <option value="">Seleccione…</option>
-                  {TURNOS.map(t => <option key={t} value={t}>{t}</option>)}
+                  {turnos.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
 
