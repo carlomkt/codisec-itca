@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 
 const PageIframe: React.FC<{ title: string; src: string }> = ({ title, src }) => {
@@ -35,6 +35,20 @@ const Home: React.FC = () => (
 );
 
 const App: React.FC = () => {
+  useEffect(() => {
+    try {
+      const existing = localStorage.getItem('codisecUser');
+      if (!existing) {
+        localStorage.setItem(
+          'codisecUser',
+          JSON.stringify({ id: 'seed', nombre: 'Usuario CODISEC', rol: 'admin' })
+        );
+      }
+    } catch (err) {
+      // ignore storage errors
+    }
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<Home />} />

@@ -247,18 +247,92 @@ document.getElementById("saveEventBtn").addEventListener("click", (e) => {
 });
 
 // Funciones para las pestañas
+// Función para actualizar gráficos de reportes
+let chartEstadosInstance = null;
+let chartMensualInstance = null;
+function inicializarGraficos() {
+  try {
+    if (typeof Chart === 'undefined') return;
+    const ctxEstados = document.getElementById('chartEstados');
+    const ctxMensual = document.getElementById('chartMensual');
+    if (!ctxEstados || !ctxMensual) return;
+
+    const estados = ['Confirmado', 'Pendiente', 'Realizado', 'Postergado', 'Cancelado'];
+    const conteoEstados = estados.map(e => eventos.filter(ev => ev.extendedProps.estado === e).length);
+
+    if (chartEstadosInstance) chartEstadosInstance.destroy();
+    chartEstadosInstance = new Chart(ctxEstados.getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: estados,
+        datasets: [{
+          label: 'Eventos por Estado',
+          data: conteoEstados,
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(255, 159, 64, 0.6)',
+            'rgba(255, 99, 132, 0.6)'
+          ],
+          borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(255, 99, 132, 1)'
+          ],
+          borderWidth: 1
+        }]
+      }
+    });
+
+    // Conteo por mes
+    const meses = Array.from({ length: 12 }, (_, i) => i);
+    const conteoMensual = meses.map(m => eventos.filter(ev => new Date(ev.start).getMonth() === m).length);
+    const etiquetasMes = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+    if (chartMensualInstance) chartMensualInstance.destroy();
+    chartMensualInstance = new Chart(ctxMensual.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: etiquetasMes,
+        datasets: [{
+          label: 'Eventos por Mes',
+          data: conteoMensual,
+          backgroundColor: 'rgba(153, 102, 255, 0.6)',
+          borderColor: 'rgba(153, 102, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: { scales: { y: { beginAtZero: true } } }
+    });
+  } catch (e) {
+    // Silenciar errores en caso de ausencia de Chart.js
+  }
+}
+
+// Invocar gráficos cuando se abre la pestaña de reportes
+// Sobrescribimos showTab para disparar gráficos
+const _showTabOriginal = typeof showTab === 'function' ? showTab : null;
 function showTab(tabName) {
   const tabs = document.querySelectorAll('.tab-content');
   const buttons = document.querySelectorAll('.tab-button');
-  
+
   tabs.forEach(tab => tab.classList.remove('active'));
   buttons.forEach(btn => btn.classList.remove('active'));
-  
-  document.getElementById(tabName + '-tab').classList.add('active');
-  event.target.classList.add('active');
-  
+
+  const targetTab = document.getElementById(tabName + '-tab');
+  if (targetTab) targetTab.classList.add('active');
+
+  const btn = document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`);
+  if (btn) btn.classList.add('active');
+
   if (tabName === 'cumplidos') {
     actualizarEventosCumplidos();
+  }
+  if (tabName === 'reportes') {
+    inicializarGraficos();
   }
 }
 
@@ -487,7 +561,8 @@ function mostrarNotificacion(mensaje, tipo = 'info') {
   }, 3000);
 }
 
-// Inicializar eventos cumplidos
+// Inicializar gráficos y cumplidos al cargar
 document.addEventListener('DOMContentLoaded', () => {
   actualizarEventosCumplidos();
+  inicializarGraficos();
 });
