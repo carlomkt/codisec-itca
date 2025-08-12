@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/"
   },
   "dependencies": {
     "html-to-docx": "^1.8.0",
