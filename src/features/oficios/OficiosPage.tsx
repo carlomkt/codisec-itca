@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
+import { fetchJSON, postJSON } from '../../lib/api';
 
 interface Oficio {
   id: string;
@@ -42,11 +43,21 @@ function writeOficios(list: Oficio[]): void {
 }
 
 const OficiosPage: React.FC = () => {
-  const [lista, setLista] = useState<Oficio[]>(() => readOficios().length ? readOficios() : [{
-    id: '1', fecha: '2025-08-05', destinatario: 'Dirección de Educación', asunto: 'Solicitud de apoyo para evento', contenido: 'Solicitamos apoyo logístico...', estado: 'Enviado', tipo: 'personalizado'
-  }]);
+  const [lista, setLista] = useState<Oficio[]>(() => readOficios());
 
-  useEffect(() => writeOficios(lista), [lista]);
+  useEffect(() => {
+    let mounted = true;
+    fetchJSON<Oficio[]>('/api/oficios', STORAGE, []).then((data) => {
+      if (!mounted) return;
+      if (data && data.length > 0) setLista(data);
+      else if (lista.length === 0) {
+        setLista([{ id: '1', fecha: '2025-08-05', destinatario: 'Dirección de Educación', asunto: 'Solicitud de apoyo para evento', contenido: 'Solicitamos apoyo logístico...', estado: 'Enviado', tipo: 'personalizado' }]);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => { writeOficios(lista); postJSON('/api/oficios', lista, STORAGE); }, [lista]);
 
   const [filter, setFilter] = useState('');
   const filtered = useMemo(() => {

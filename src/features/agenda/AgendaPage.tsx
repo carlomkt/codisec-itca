@@ -4,6 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Chart, PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
+import { fetchJSON, postJSON } from '../../lib/api';
 
 Chart.register(PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -66,52 +67,46 @@ function getEventColor(estado: EventoEstado): string {
 const AgendaPage: React.FC = () => {
   const [events, setEvents] = useState<Evento[]>(() => {
     const existentes = readEventsFromStorage();
-    if (existentes.length > 0) return existentes;
-    const seed: Evento[] = [
-      {
-        id: '1',
-        title: 'CHARLA - VIOLENCIA',
-        start: '2025-08-19T10:00:00',
-        extendedProps: {
-          duracion: 40,
-          tema: 'VIOLENCIA',
-          aliado: 'GPAI',
-          institucion: 'CEM',
-          publico: 'Escolares',
-          responsable: 'Patricia Cruz',
-          observaciones: 'Preventivo Cyberbullying',
-          estado: 'Realizado',
-          asistentes: 45,
-          evaluacion: 'Excelente',
-          logros: 'Interés y participación activa',
-          evidencias: ['foto1.jpg', 'oficio_cumplimiento.pdf'],
-        },
-      },
-      {
-        id: '2',
-        title: 'TALLER - DROGAS',
-        start: '2025-08-25T14:00:00',
-        extendedProps: {
-          duracion: 60,
-          tema: 'PREVENCIÓN DE DROGAS',
-          aliado: 'DEVIDA',
-          institucion: 'I.E. San Juan',
-          publico: 'Adolescentes',
-          responsable: 'Carlos Mendoza',
-          observaciones: '',
-          estado: 'Postergado',
-          nuevaFecha: '2025-09-02',
-          nuevaHora: '15:00',
-          motivoPostergacion: 'Falta de disponibilidad del local',
-        },
-      },
-    ];
-    persistEventsToStorage(seed);
-    return seed;
+    return existentes;
   });
 
   useEffect(() => {
+    let mounted = true;
+    fetchJSON<Evento[]>('/api/eventos', 'codisecEventos', []).then((data) => {
+      if (!mounted) return;
+      if (data && Array.isArray(data) && data.length > 0) {
+        setEvents(data);
+      } else if (events.length === 0) {
+        const seed: Evento[] = [
+          {
+            id: '1',
+            title: 'CHARLA - VIOLENCIA',
+            start: '2025-08-19T10:00:00',
+            extendedProps: {
+              duracion: 40,
+              tema: 'VIOLENCIA',
+              aliado: 'GPAI',
+              institucion: 'CEM',
+              publico: 'Escolares',
+              responsable: 'Patricia Cruz',
+              observaciones: 'Preventivo Cyberbullying',
+              estado: 'Realizado',
+              asistentes: 45,
+              evaluacion: 'Excelente',
+              logros: 'Interés y participación activa',
+              evidencias: ['foto1.jpg', 'oficio_cumplimiento.pdf'],
+            },
+          },
+        ];
+        setEvents(seed);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
     persistEventsToStorage(events);
+    postJSON('/api/eventos', events, 'codisecEventos');
   }, [events]);
 
   const handleDateClick = useCallback((info: any) => {

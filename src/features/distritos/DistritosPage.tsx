@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { fetchJSON, postJSON } from '../../lib/api';
 
 type Estado = 'Activo' | 'Inactivo';
 
@@ -35,26 +36,34 @@ const emptyDistrito: Distrito = {
 };
 
 const DistritosPage: React.FC = () => {
-  const [distritos, setDistritos] = useState<Distrito[]>(() => {
-    const existing = readFromStorage();
-    if (existing.length > 0) return existing;
-    const seed: Distrito[] = [
-      { id: 'd1', nombre: 'Distrito Central', responsable: 'Carlos Fernández', actividades: 'Charlas de prevención, patrullaje comunitario', estado: 'Activo' },
-      { id: 'd2', nombre: 'Distrito Norte', responsable: 'Ana Morales', actividades: 'Talleres juveniles, ferias de seguridad', estado: 'Activo' },
-      { id: 'd3', nombre: 'Distrito Sur', responsable: 'Luis García', actividades: 'Campañas en colegios, charlas en plazas', estado: 'Inactivo' },
-    ];
-    persistToStorage(seed);
-    return seed;
-  });
+  const [distritos, setDistritos] = useState<Distrito[]>(() => readFromStorage());
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJSON<Distrito[]>('/api/distritos', STORAGE_KEY, []).then((data) => {
+      if (!mounted) return;
+      if (data && data.length > 0) setDistritos(data);
+      else if (distritos.length === 0) {
+        const seed: Distrito[] = [
+          { id: 'd1', nombre: 'Distrito Central', responsable: 'Carlos Fernández', actividades: 'Charlas de prevención, patrullaje comunitario', estado: 'Activo' },
+          { id: 'd2', nombre: 'Distrito Norte', responsable: 'Ana Morales', actividades: 'Talleres juveniles, ferias de seguridad', estado: 'Activo' },
+          { id: 'd3', nombre: 'Distrito Sur', responsable: 'Luis García', actividades: 'Campañas en colegios, charlas en plazas', estado: 'Inactivo' },
+        ];
+        setDistritos(seed);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    persistToStorage(distritos);
+    postJSON('/api/distritos', distritos, STORAGE_KEY);
+  }, [distritos]);
 
   const [filter, setFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<Distrito>(emptyDistrito);
-
-  useEffect(() => {
-    persistToStorage(distritos);
-  }, [distritos]);
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { fetchJSON, postJSON } from '../../lib/api';
 
 interface Responsable {
   id: string;
@@ -35,18 +36,37 @@ function write<T>(key: string, value: T): void {
 }
 
 const ResponsablesPage: React.FC = () => {
-  const [responsables, setResponsables] = useState<Responsable[]>(() => read<Responsable[]>(STORAGE_RESP, [
-    { id: '1', nombre: 'Patricia Cruz', cargo: 'Coordinadora GPAI', institucion: 'CEM', distrito: 'Distrito Norte', telefono: '987654321', email: 'patricia.cruz@ejemplo.com' },
-    { id: '2', nombre: 'Luis Fernández', cargo: 'Jefe de Seguridad', institucion: 'Municipalidad', distrito: 'Distrito Sur', telefono: '912345678', email: 'luis.fernandez@ejemplo.com' },
-  ]));
-  const [actividades, setActividades] = useState<ActividadITCA[]>(() => read<ActividadITCA[]>(STORAGE_ITCA, [
-    { id: 1, lineaEstrategica: 'Prevención Social', actividad: 'Charlas preventivas en colegios', responsable: '', fecha: '2025-03-15' },
-    { id: 2, lineaEstrategica: 'Prevención Comunitaria', actividad: 'Patrullaje ciudadano', responsable: '', fecha: '2025-03-20' },
-    { id: 3, lineaEstrategica: 'Persecución del Delito', actividad: 'Operativos anti-delincuenciales', responsable: '', fecha: '2025-03-25' },
-  ]));
+  const [responsables, setResponsables] = useState<Responsable[]>(() => read<Responsable[]>(STORAGE_RESP, []));
+  const [actividades, setActividades] = useState<ActividadITCA[]>(() => read<ActividadITCA[]>(STORAGE_ITCA, []));
 
-  useEffect(() => write(STORAGE_RESP, responsables), [responsables]);
-  useEffect(() => write(STORAGE_ITCA, actividades), [actividades]);
+  useEffect(() => {
+    let mounted = true;
+    fetchJSON<Responsable[]>('/api/responsables', STORAGE_RESP, []).then((data) => {
+      if (!mounted) return;
+      if (data && data.length > 0) setResponsables(data);
+      else if (responsables.length === 0) {
+        setResponsables([
+          { id: '1', nombre: 'Patricia Cruz', cargo: 'Coordinadora GPAI', institucion: 'CEM', distrito: 'Distrito Norte', telefono: '987654321', email: 'patricia.cruz@ejemplo.com' },
+          { id: '2', nombre: 'Luis Fernández', cargo: 'Jefe de Seguridad', institucion: 'Municipalidad', distrito: 'Distrito Sur', telefono: '912345678', email: 'luis.fernandez@ejemplo.com' },
+        ]);
+      }
+    });
+    fetchJSON<ActividadITCA[]>('/api/actividadesITCA', STORAGE_ITCA, []).then((data) => {
+      if (!mounted) return;
+      if (data && data.length > 0) setActividades(data);
+      else if (actividades.length === 0) {
+        setActividades([
+          { id: 1, lineaEstrategica: 'Prevención Social', actividad: 'Charlas preventivas en colegios', responsable: '', fecha: '2025-03-15' },
+          { id: 2, lineaEstrategica: 'Prevención Comunitaria', actividad: 'Patrullaje ciudadano', responsable: '', fecha: '2025-03-20' },
+          { id: 3, lineaEstrategica: 'Persecución del Delito', actividad: 'Operativos anti-delincuenciales', responsable: '', fecha: '2025-03-25' },
+        ]);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => { write(STORAGE_RESP, responsables); postJSON('/api/responsables', responsables, STORAGE_RESP); }, [responsables]);
+  useEffect(() => { write(STORAGE_ITCA, actividades); postJSON('/api/actividadesITCA', actividades, STORAGE_ITCA); }, [actividades]);
 
   const [filter, setFilter] = useState('');
   const filtered = useMemo(() => {
