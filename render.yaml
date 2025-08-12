@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: codisec-api
+    env: node
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy && npx tsc -p tsconfig.node.json
+    startCommand: node dist-server/server/index.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: codisec-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+
+databases:
+  - name: codisec-db
+    plan: free
