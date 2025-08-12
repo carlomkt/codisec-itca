@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
-import { ArrayOf } from './schemas';
+import { ArrayOf } from './schemas.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';

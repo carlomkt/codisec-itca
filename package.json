@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "concurrently \"vite\" \"node --loader ts-node/esm -r dotenv/config server/index.ts\"",
     "build": "vite build",
+    "build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json",
     "lint": "eslint .",
     "preview": "vite preview",
     "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/",
@@ -24,7 +25,7 @@
     "html2pdf.js": "^0.10.3",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.344.0",
-    "multer": "^2.0.2",
+    "multer": "^1.4.5-lts.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
