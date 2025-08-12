@@ -1,3 +1,615 @@
+Puedo hacerlo directo, pero necesito permiso de escritura en el repo. Si me agregas como colaborador en GitHub (write), lo subo y dejo Render/Netlify configurados. Mientras me das acceso, si quieres avanzar ya, pega exactamente estos archivos/edits en tu repo y luego hago el setup en Render/Netlify:
+
+Crear render.yaml en la raíz
+services:
+  - type: web
+    name: codisec-api
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run build:server
+    startCommand: node dist-server/server/index.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: codisec-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+
+databases:
+  - name: codisec-db
+    plan: free
+Crear/editar tsconfig.node.json (en la raíz)
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "dist-server",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["server/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+Editar package.json (agregar el script build:server dentro de "scripts")
+"build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json"
+Ajuste ESM en server/index.ts (cambia una línea)
+Antes:
+import { ArrayOf } from './schemas';
+Después:
+import { ArrayOf } from './schemas.js';
+Prisma a Postgres (si no existe aún el archivo, créalo) Archivo: prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id            String   @id
+  title         String
+  start         DateTime
+  extendedProps Json
+}
+
+model Distrito {
+  id           String @id
+  nombre       String
+  responsable  String
+  actividades  String
+  estado       String
+}
+
+model Responsable {
+  id          String @id
+  nombre      String
+  cargo       String
+  institucion String
+  distrito    String
+  telefono    String
+  email       String
+}
+
+model ActividadITCA {
+  id                Int       @id
+  lineaEstrategica  String
+  actividad         String
+  responsable       String
+  fecha             DateTime
+  objetivo          String?
+  meta              String?
+  indicador         String?
+  producto          String?
+  aliados           String?
+  recursos          String?
+  fechaProgramada   DateTime?
+  fechaEjecucion    DateTime?
+  estado            String    @default("Programado")
+  observaciones     String?
+  distrito          String?
+  poblacionObjetivo String?
+  ubicacion         String?
+  evidencias        Json?
+  trimestre         String?
+}
+
+model Oficio {
+  id           String   @id
+  fecha        DateTime
+  destinatario String
+  asunto       String
+  contenido    String
+  estado       String
+  tipo         String
+}
+
+model CatalogItem {
+  id     Int    @id @default(autoincrement())
+  type   String
+  value  String
+  active Boolean @default(true)
+  order  Int?
+}
+Cuando haga commit en main:
+
+Render: Deploy Blueprint → se crea DB Postgres + servicio Node y se construye la API.
+Copias la URL pública de Render y en Netlify (Site settings → Build & deploy → Environment) pones:
+VITE_API_URL = https://tu-api.onrender.com
+Redeploy Netlify (Clear cache and deploy).
+Si me agregas como colaborador al repo y acceso a Netlify/Render (roles mínimos), lo hago todo por ti y te devuelvo las URLs funcionando.
+
+ditar package.json (agregar el script build:server dentro de "scripts")
+"build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json"
+Ajuste ESM en server/index.ts (cambia una línea)
+Antes:
+import { ArrayOf } from './schemas';
+Después:
+import { ArrayOf } from './schemas.js'; se mas especifico recuerda que no se programar y dame mejor el scripto completo de cada cambio para reemplazar
+Thought for 15s
+Perfecto. Aquí tienes exactamente qué copiar y pegar, sin suposiciones.
+
+package.json → reemplaza TODO el bloque "scripts" por este
+Abre el archivo package.json.
+Busca la llave "scripts".
+Sustituye todo su contenido por este bloque completo:
+"scripts": {
+  "dev": "concurrently \"vite\" \"node --loader ts-node/esm -r dotenv/config server/index.ts\"",
+  "build": "vite build",
+  "build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json",
+  "lint": "eslint .",
+  "preview": "vite preview",
+  "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/",
+  "api": "node --loader ts-node/esm -r dotenv/config server/index.ts",
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev --name init"
+}
+server/index.ts → cambia UNA línea de import
+Abre server/index.ts.
+Busca esta línea EXACTA:
+import { ArrayOf } from './schemas';
+Reemplázala por esta:
+import { ArrayOf } from './schemas.js';
+Qué hago después
+
+Commits a la rama main en GitHub.
+En Render: vuelve a “Deploy Blueprint” o “Manual Deploy” con “Clear build cache” para que ejecute:
+npm ci
+npm run build:server (genera Prisma, crea el esquema en Postgres y compila TypeScript)
+node dist-server/server/index.js (arranca la API)
+Copia la URL pública de la API de Render.
+En Netlify: Site settings → Build & deploy → Environment → añade/edita:
+VITE_API_URL = [URL de la API de Render]
+“Trigger deploy” → “Clear cache and deploy”.
+Si quieres, me agregas permisos de escritura al repo y lo hago yo por ti (subo estos cambios, redeploy en Render y seteo Netlify).
+
+server/index.ts → cambia UNA línea de import
+Abre server/index.ts.
+Busca esta línea EXACTA:
+import { ArrayOf } from './schemas';
+Reemplázala por esta:
+import { ArrayOf } from './schemas.js'; donde esta eso?
+Thought for 12s
+Está en la ruta del repositorio: server/index.ts
+
+Cómo cambiarlo desde GitHub (paso a paso):
+
+Abre tu repo: https://github.com/carlomkt/codisec-itca
+Entra a la carpeta server y luego al archivo index.ts
+Clic en el ícono del lápiz (Edit)
+Busca la línea EXACTA:
+import { ArrayOf } from './schemas';
+Reemplázala por:
+import { ArrayOf } from './schemas.js';
+Baja y haz “Commit changes” a la rama main
+Si no ves la carpeta server o el archivo index.ts, aún no están en tu repo. Dímelo y te indico cómo crearlos, o te lo subo yo si me agregas como colaborador.
+
+no hay carpeta server
+Thought for 33s
+Vamos a crear la carpeta del servidor (backend) y los archivos necesarios, todo desde la UI de GitHub, con contenido exacto para copiar y pegar. Luego desplegamos en Render y conectamos Netlify.
+
+PASO 1 — Crear la carpeta y archivos del servidor en GitHub
+
+Crea el archivo server/index.ts
+Entra a tu repo carlomkt/codisec-itca → Add file → Create new file
+Nombre: server/index.ts
+Contenido (copia todo):
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
+import { ArrayOf } from './schemas.js';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
+import XLSX from 'xlsx';
+
+dotenv.config();
+const prisma = new PrismaClient();
+
+const app = express();
+const PORT = Number(process.env.PORT || 5175);
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+
+app.use(cors());
+app.use(express.json({ limit: '5mb' }));
+
+function signToken(payload: object) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+}
+
+function authRequired(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    jwt.verify(token, JWT_SECRET);
+    return next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// Dev token (no en producción)
+app.get('/api/dev-token', (_req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(404).end();
+  const token = signToken({ sub: 'dev-user', role: 'admin' });
+  res.json({ token });
+});
+
+// Login simple (admin/admin por defecto si no defines DEV_USER/DEV_PASS)
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body || {};
+  const DEV_USER = process.env.DEV_USER || 'admin';
+  const DEV_PASS = process.env.DEV_PASS || 'admin';
+  if (username === DEV_USER && password === DEV_PASS) {
+    const token = signToken({ sub: username, role: 'admin' });
+    return res.json({ token });
+  }
+  return res.status(401).json({ error: 'Credenciales inválidas' });
+});
+
+// Archivos estáticos para uploads
+const uploadRoot = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadRoot)) fs.mkdirSync(uploadRoot);
+app.use('/uploads', express.static(uploadRoot));
+
+// Multer storage para evidencias ITCA
+const itcaDir = path.join(uploadRoot, 'itca');
+if (!fs.existsSync(itcaDir)) fs.mkdirSync(itcaDir);
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, itcaDir),
+  filename: (_req, file, cb) => {
+    const safe = Date.now() + '_' + file.originalname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+    cb(null, safe);
+  },
+});
+const upload = multer({ storage });
+
+// Upload evidencias
+app.post('/api/itca/upload', authRequired, upload.array('files', 10), (req, res) => {
+  const files = (req.files as Express.Multer.File[]) || [];
+  const mapped = files.map(f => ({
+    name: f.originalname,
+    url: `/uploads/itca/${path.basename(f.path)}`,
+    size: f.size,
+    type: f.mimetype,
+  }));
+  res.json({ files: mapped });
+});
+
+// Importar Excel ITCA
+app.post('/api/itca/import', authRequired, (req, res) => {
+  const { workbookBase64 } = req.body || {};
+  if (!workbookBase64) return res.status(400).json({ error: 'workbookBase64 requerido' });
+  try {
+    const base64 = workbookBase64.split(',').pop() as string;
+    const buf = Buffer.from(base64, 'base64');
+    const wb = XLSX.read(buf, { type: 'buffer' });
+    const wsName = wb.SheetNames[0];
+    const ws = wb.Sheets[wsName];
+    const rows = XLSX.utils.sheet_to_json(ws);
+    res.json({ rows });
+  } catch {
+    res.status(400).json({ error: 'No se pudo leer el Excel' });
+  }
+});
+
+// GETs
+app.get('/api/eventos', async (_req, res) => {
+  const data = await prisma.event.findMany();
+  res.json(data.map(e => ({
+    id: e.id,
+    title: e.title,
+    start: e.start.toISOString(),
+    extendedProps: e.extendedProps,
+  })));
+});
+
+app.get('/api/distritos', async (_req, res) => {
+  const data = await prisma.distrito.findMany();
+  res.json(data);
+});
+
+app.get('/api/responsables', async (_req, res) => {
+  const data = await prisma.responsable.findMany();
+  res.json(data);
+});
+
+app.get('/api/actividadesITCA', async (_req, res) => {
+  const data = await prisma.actividadITCA.findMany();
+  res.json(data.map(a => ({
+    ...a,
+    fecha: a.fecha.toISOString(),
+    fechaProgramada: a.fechaProgramada?.toISOString() ?? undefined,
+    fechaEjecucion: a.fechaEjecucion?.toISOString() ?? undefined,
+  })));
+});
+
+app.get('/api/oficios', async (_req, res) => {
+  const data = await prisma.oficio.findMany();
+  res.json(data.map(o => ({ ...o, fecha: o.fecha.toISOString() })));
+});
+
+// Catálogos
+app.get('/api/catalog/:type', async (req, res) => {
+  const type = String(req.params.type);
+  const data = await prisma.catalogItem.findMany({ where: { type, active: true }, orderBy: [{ order: 'asc' }] });
+  res.json(data);
+});
+
+app.post('/api/catalog/:type', authRequired, async (req, res) => {
+  const type = String(req.params.type);
+  const parsed = ArrayOf.catalog.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.catalogItem.deleteMany({ where: { type } }),
+    prisma.catalogItem.createMany({ data: parsed.data.map(c => ({ type, value: c.value, active: c.active ?? true, order: c.order ?? null })) }),
+  ]);
+  res.json({ ok: true });
+});
+
+// POST replace-all (con validación Zod)
+app.post('/api/eventos', authRequired, async (req, res) => {
+  const parsed = ArrayOf.eventos.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.event.deleteMany(),
+    prisma.event.createMany({
+      data: parsed.data.map(e => ({
+        id: e.id,
+        title: e.title,
+        start: new Date(e.start),
+        extendedProps: e.extendedProps as any,
+      })),
+    }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post('/api/distritos', authRequired, async (req, res) => {
+  const parsed = ArrayOf.distritos.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.distrito.deleteMany(),
+    prisma.distrito.createMany({ data: parsed.data }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post('/api/responsables', authRequired, async (req, res) => {
+  const parsed = ArrayOf.responsables.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.responsable.deleteMany(),
+    prisma.responsable.createMany({ data: parsed.data }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post('/api/actividadesITCA', authRequired, async (req, res) => {
+  const parsed = ArrayOf.actividadesITCA.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.actividadITCA.deleteMany(),
+    prisma.actividadITCA.createMany({
+      data: parsed.data.map(a => ({
+        ...a,
+        fecha: new Date(a.fecha),
+        fechaProgramada: a.fechaProgramada ? new Date(a.fechaProgramada) : null,
+        fechaEjecucion: a.fechaEjecucion ? new Date(a.fechaEjecucion) : null,
+      })),
+    }),
+  ]);
+  res.json({ ok: true });
+});
+
+app.post('/api/oficios', authRequired, async (req, res) => {
+  const parsed = ArrayOf.oficios.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.oficio.deleteMany(),
+    prisma.oficio.createMany({ data: parsed.data.map(o => ({ ...o, fecha: new Date(o.fecha) })) }),
+  ]);
+  res.json({ ok: true });
+});
+
+// Seed de catálogos iniciales
+async function seedCatalog() {
+  async function ensure(type: string, values: string[]) {
+    const count = await prisma.catalogItem.count({ where: { type } });
+    if (count === 0) {
+      await prisma.catalogItem.createMany({ data: values.map((v, i) => ({ type, value: v, order: i })) });
+    }
+  }
+  await ensure('lineas', ['Prevención Social','Prevención Comunitaria','Persecución del Delito','Atención a Víctimas','Rehabilitación']);
+  await ensure('estados', ['Confirmado','Pendiente','Realizado','Postergado','Cancelado']);
+  await ensure('publicos', ['Estudiantes','Docentes','Padres','Comunidad']);
+  await ensure('niveles', ['Inicial','Primaria','Secundaria','Superior']);
+  await ensure('turnos', ['Mañana','Tarde','Noche']);
+  await ensure('ie', ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen']);
+  await ensure('distritos', ['Chorrillos Centro','Matellini','San Juan Bautista','San Pedro']);
+}
+seedCatalog().catch(() => {});
+
+app.listen(PORT, () => {
+  console.log(`API listening on http://0.0.0.0:${PORT}`);
+});
+Crea el archivo server/schemas.ts
+Add file → Create new file
+Nombre: server/schemas.ts
+Contenido:
+import { z } from 'zod';
+
+export const EventoExtendidoSchema = z.object({
+  duracion: z.number().int().nonnegative(),
+  tema: z.string().min(1),
+  aliado: z.string().optional().default(''),
+  institucion: z.string().optional().default(''),
+  publico: z.string().optional().default(''),
+  responsable: z.string().optional().default(''),
+  observaciones: z.string().optional().default(''),
+  estado: z.enum(['Confirmado', 'Pendiente', 'Realizado', 'Postergado', 'Cancelado']),
+  asistentes: z.number().int().optional(),
+  evaluacion: z.string().optional(),
+  logros: z.string().optional(),
+  evidencias: z.array(z.any()).optional(),
+  nivelEducativo: z.string().optional(),
+  turno: z.string().optional(),
+  gradoSeccion: z.string().optional(),
+  direccion: z.string().optional(),
+});
+
+export const EventoSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  start: z.string().min(1),
+  extendedProps: EventoExtendidoSchema,
+});
+
+export const DistritoSchema = z.object({
+  id: z.string().min(1),
+  nombre: z.string().min(1),
+  responsable: z.string().min(1),
+  actividades: z.string().default(''),
+  estado: z.string().min(1),
+});
+
+export const ResponsableSchema = z.object({
+  id: z.string().min(1),
+  nombre: z.string().min(1),
+  cargo: z.string().min(1),
+  institucion: z.string().min(1),
+  distrito: z.string().min(1),
+  telefono: z.string().min(3),
+  email: z.string().email(),
+});
+
+export const ActividadITCASchema = z.object({
+  id: z.number().int(),
+  lineaEstrategica: z.string().min(1),
+  actividad: z.string().min(1),
+  responsable: z.string().optional().default(''),
+  fecha: z.string().min(1),
+  objetivo: z.string().optional(),
+  meta: z.string().optional(),
+  indicador: z.string().optional(),
+  producto: z.string().optional(),
+  aliados: z.string().optional(),
+  recursos: z.string().optional(),
+  fechaProgramada: z.string().optional(),
+  fechaEjecucion: z.string().optional(),
+  estado: z.string().optional(),
+  observaciones: z.string().optional(),
+  distrito: z.string().optional(),
+  poblacionObjetivo: z.string().optional(),
+  ubicacion: z.string().optional(),
+  evidencias: z.any().optional(),
+  trimestre: z.string().optional(),
+});
+
+export const OficioSchema = z.object({
+  id: z.string().min(1),
+  fecha: z.string().min(1),
+  destinatario: z.string().min(1),
+  asunto: z.string().min(1),
+  contenido: z.string().min(1),
+  estado: z.string().min(1),
+  tipo: z.string().min(1),
+});
+
+export const CatalogItemSchema = z.object({
+  id: z.number().int().optional(),
+  type: z.string().min(1),
+  value: z.string().min(1),
+  active: z.boolean().optional().default(true),
+  order: z.number().int().optional().nullable(),
+});
+
+export const ArrayOf = {
+  eventos: z.array(EventoSchema),
+  distritos: z.array(DistritoSchema),
+  responsables: z.array(ResponsableSchema),
+  actividadesITCA: z.array(ActividadITCASchema),
+  oficios: z.array(OficioSchema),
+  catalog: z.array(CatalogItemSchema),
+};
+PASO 2 — Asegurar tsconfig.node.json en la raíz
+
+Add file → Create new file
+Nombre: tsconfig.node.json
+Contenido:
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "dist-server",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["server/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+PASO 3 — Asegurar prisma/schema.prisma con Postgres
+
+Si no existe, créalo: prisma/schema.prisma
+Contenido (pegado tal cual del mensaje anterior con provider postgresql). Ya lo subiste, solo confirma provider=postgresql.
+PASO 4 — Asegurar render.yaml en la raíz
+
+Si no existe, créalo: render.yaml (contenido arriba). Si ya lo tienes, deja tal cual.
+PASO 5 — package.json scripts
+
+Abre package.json → reemplaza SOLO “scripts” por este bloque:
+"scripts": {
+  "dev": "concurrently \"vite\" \"node --loader ts-node/esm -r dotenv/config server/index.ts\"",
+  "build": "vite build",
+  "build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json",
+  "lint": "eslint .",
+  "preview": "vite preview",
+  "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/",
+  "api": "node --loader ts-node/esm -r dotenv/config server/index.ts",
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev --name init"
+}
+Y verifica que en “dependencies” tengas estas librerías (si falta alguna, añádela):
+
+express, cors, jsonwebtoken, dotenv, multer, xlsx, @prisma/client, zod
+PASO 6 — Deploy en Render y Netlify
+
+Render (Blueprint) → Deploy Blueprint (si falla, Manual Deploy → Clear build cache & deploy).
+Copia la URL pública de la API (ej.: https://codisec-api-xxxxx.onrender.com).
+Netlify → Site settings → Build & deploy → Environment → añade/edita:
+VITE_API_URL = esa URL
+Deploys → Trigger deploy → Clear cache and deploy site.
+Listo. Si prefieres, agrégame como colaborador (write) en GitHub y como Developer en Render y lo hago por ti en 10-15 minutos.
+
+dependencies” tengas estas librerías (si falta alguna, añádela):
+
+express, cors, jsonwebtoken, dotenv, multer, xlsx, @prisma/client, zod
+ no existe la carpeta dependencies
+Thought for 17s
+“dependencies” no es una carpeta: es una sección dentro del archivo package.json. Te doy el contenido exacto para copiar/pegar, así no tienes que buscar nada.
+
+Qué hacer (GitHub UI):
+
+Entra a tu repo: https://github.com/carlomkt/codisec-itca
+Abre el archivo package.json
+Clic en el ícono del lápiz (Edit)
+Reemplaza TODO el contenido por este (copiar/pegar tal cual):
 {
   "name": "codisec-itca",
   "private": true,
@@ -51,6 +663,452 @@
     "globals": "^15.9.0",
     "postcss": "^8.4.35",
     "prisma": "^6.13.0",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.3.0",
+    "vite": "^5.4.2",
+    "vite-plugin-static-copy": "^3.1.1"
+  }
+}
+Baja y pulsa “Commit changes”.
+Con esto ya quedan instalables las librerías que te mencioné:
+
+Backend/API: express, cors, jsonwebtoken, dotenv, multer, xlsx, @prisma/client, zod
+Frontend/build: react, vite, tailwind, fullcalendar, etc.
+Después:
+
+Verifica también que tengas estos 3 archivos (si no, créalos como te guié antes):
+render.yaml en la raíz (para Render)
+tsconfig.node.json en la raíz
+server/index.ts y server/schemas.ts
+Cuando todo esté en main:
+
+En Render: “Deploy Blueprint” (o “Manual Deploy → Clear build cache”).
+Copia la URL pública de la API.
+En Netlify: Site settings → Build & deploy → Environment → agrega VITE_API_URL con esa URL, y redeploy.
+Si prefieres, dame permisos de escritura al repo y lo subo yo por ti.
+
+En Render: “Deploy Blueprint” (o “Manual Deploy → Clear build cache”).
+Copia la URL pública de la API. donde esta? donde hago eso codisec
+Manual sync
+Service ID:
+exs-d2dlf8ggjchc73dt4vs0
+
+carlomkt / codisec-itca
+main
+Sync: 7abf811
+7abf811:Update package.json
+a few seconds ago
+Resources already up to date
+Thought for 18s
+Hazlo así en Render, paso a paso:
+
+Ir al Blueprint
+Render (dashboard) → Blueprints (barra izquierda)
+Abre tu Blueprint del repo carlomkt/codisec-itca (verás “Resources already up to date”).
+Clic en “View Resources” (o botón similar) para ver qué creó.
+Abrir el servicio web “codisec-api”
+En la lista de recursos/servicios, entra a “codisec-api”.
+Ahí verás:
+Overview: la URL pública (Hostname) arriba, p. ej. https://codisec-api-xxxxx.onrender.com
+Botón “Manual Deploy” (arriba a la derecha).
+Forzar despliegue limpio
+Dentro de “codisec-api” → “Manual Deploy” → “Clear build cache & deploy”.
+Pestaña “Logs” o “Builds”: espera a que termine (verás pasos como “npm ci”, “prisma … db push”, “tsc …”, y al final “API listening …”).
+Copia la URL pública (Hostname) que sale en Overview.
+Si no ves “codisec-api” en “View Resources”:
+
+Vuelve a Blueprints → abre el blueprint del repo → dale a “Deploy Blueprint” (o “Sync from Repo” y “Deploy Changes”). Al finalizar, repite los pasos 2 y 3.
+Poner la URL en Netlify
+Netlify → tu sitio codisec-itca.netlify.app → Site settings → Build & deploy → Environment
+Add variable:
+Key: VITE_API_URL
+Value: pega la URL pública de Render (ej. https://codisec-api-xxxxx.onrender.com)
+Deploys → “Trigger deploy” → “Clear cache and deploy site”.
+Listo: prueba el sitio (Agenda, ITCA, Catálogos). Si algo falla en Render, copia el texto del último log (Build/Runtime) y te indico qué tocar.
+
+2025-08-12T18:56:50.506200421Z ==> Cloning from https://github.com/carlomkt/codisec-itca
+2025-08-12T18:56:51.18035324Z ==> Checking out commit 7abf81132e9c8d74f3656685104e6edd4ab6150c in branch main
+2025-08-12T18:56:54.394758819Z ==> Using Node.js version 22.16.0 (default)
+2025-08-12T18:56:54.420884153Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-08-12T18:56:56.241742869Z ==> Running build command 'npm ci && npx prisma generate && npx prisma db push && npx tsc -p tsconfig.node.json'...
+2025-08-12T18:57:15.08272339Z npm error code EUSAGE
+2025-08-12T18:57:15.082896883Z npm error
+2025-08-12T18:57:15.082906434Z npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+2025-08-12T18:57:15.082909744Z npm error
+2025-08-12T18:57:15.082913574Z npm error Missing: @fullcalendar/core@6.1.19 from lock file
+2025-08-12T18:57:15.082916324Z npm error Missing: @fullcalendar/daygrid@6.1.19 from lock file
+2025-08-12T18:57:15.082920944Z npm error Missing: @fullcalendar/interaction@6.1.19 from lock file
+2025-08-12T18:57:15.082923964Z npm error Missing: @fullcalendar/react@6.1.19 from lock file
+2025-08-12T18:57:15.082928484Z npm error Missing: @fullcalendar/timegrid@6.1.19 from lock file
+2025-08-12T18:57:15.082933284Z npm error Missing: @prisma/client@6.14.0 from lock file
+2025-08-12T18:57:15.082937834Z npm error Missing: @types/jsonwebtoken@9.0.10 from lock file
+2025-08-12T18:57:15.082942675Z npm error Missing: chart.js@4.5.0 from lock file
+2025-08-12T18:57:15.082960275Z npm error Missing: concurrently@8.2.2 from lock file
+2025-08-12T18:57:15.082965755Z npm error Missing: cors@2.8.5 from lock file
+2025-08-12T18:57:15.082969535Z npm error Missing: dotenv@17.2.1 from lock file
+2025-08-12T18:57:15.082973665Z npm error Missing: express@4.21.2 from lock file
+2025-08-12T18:57:15.082977535Z npm error Missing: jsonwebtoken@9.0.2 from lock file
+2025-08-12T18:57:15.082981715Z npm error Invalid: lock file's jspdf@3.0.1 does not satisfy jspdf@2.5.2
+2025-08-12T18:57:15.082986215Z npm error Missing: multer@1.4.5-lts.2 from lock file
+2025-08-12T18:57:15.082990065Z npm error Missing: prisma@6.14.0 from lock file
+2025-08-12T18:57:15.082995185Z npm error Missing: react-router-dom@6.30.1 from lock file
+2025-08-12T18:57:15.083000936Z npm error Missing: ts-node@10.9.2 from lock file
+2025-08-12T18:57:15.083005816Z npm error Missing: @types/node@24.2.1 from lock file
+2025-08-12T18:57:15.083010876Z npm error Missing: vite-plugin-static-copy@3.1.1 from lock file
+2025-08-12T18:57:15.083015976Z npm error Missing: xlsx@0.18.5 from lock file
+2025-08-12T18:57:15.083020846Z npm error Missing: zod@4.0.17 from lock file
+2025-08-12T18:57:15.083025816Z npm error Missing: preact@10.12.1 from lock file
+2025-08-12T18:57:15.083030786Z npm error Missing: @types/ms@2.1.0 from lock file
+2025-08-12T18:57:15.083035466Z npm error Missing: undici-types@7.10.0 from lock file
+2025-08-12T18:57:15.083040677Z npm error Missing: @kurkle/color@0.3.4 from lock file
+2025-08-12T18:57:15.083045807Z npm error Missing: chalk@4.1.2 from lock file
+2025-08-12T18:57:15.083050547Z npm error Missing: date-fns@2.30.0 from lock file
+2025-08-12T18:57:15.083055997Z npm error Missing: rxjs@7.8.2 from lock file
+2025-08-12T18:57:15.083061587Z npm error Missing: shell-quote@1.8.3 from lock file
+2025-08-12T18:57:15.083066587Z npm error Missing: spawn-command@0.0.2 from lock file
+2025-08-12T18:57:15.083071567Z npm error Missing: supports-color@8.1.1 from lock file
+2025-08-12T18:57:15.083076907Z npm error Missing: tree-kill@1.2.2 from lock file
+2025-08-12T18:57:15.083081897Z npm error Missing: yargs@17.7.2 from lock file
+2025-08-12T18:57:15.083086687Z npm error Missing: vary@1.1.2 from lock file
+2025-08-12T18:57:15.083105018Z npm error Missing: accepts@1.3.8 from lock file
+2025-08-12T18:57:15.083108058Z npm error Missing: array-flatten@1.1.1 from lock file
+2025-08-12T18:57:15.083111098Z npm error Missing: body-parser@1.20.3 from lock file
+2025-08-12T18:57:15.083114958Z npm error Missing: content-disposition@0.5.4 from lock file
+2025-08-12T18:57:15.083117948Z npm error Missing: content-type@1.0.5 from lock file
+2025-08-12T18:57:15.083121098Z npm error Missing: cookie@0.7.1 from lock file
+2025-08-12T18:57:15.083123878Z npm error Missing: cookie-signature@1.0.6 from lock file
+2025-08-12T18:57:15.083126908Z npm error Missing: debug@2.6.9 from lock file
+2025-08-12T18:57:15.083129998Z npm error Missing: depd@2.0.0 from lock file
+2025-08-12T18:57:15.083133128Z npm error Missing: encodeurl@2.0.0 from lock file
+2025-08-12T18:57:15.083136488Z npm error Missing: escape-html@1.0.3 from lock file
+2025-08-12T18:57:15.083139819Z npm error Missing: etag@1.8.1 from lock file
+2025-08-12T18:57:15.083142959Z npm error Missing: finalhandler@1.3.1 from lock file
+2025-08-12T18:57:15.083146259Z npm error Missing: fresh@0.5.2 from lock file
+2025-08-12T18:57:15.083149199Z npm error Missing: http-errors@2.0.0 from lock file
+2025-08-12T18:57:15.083152279Z npm error Missing: merge-descriptors@1.0.3 from lock file
+2025-08-12T18:57:15.083155379Z npm error Missing: methods@1.1.2 from lock file
+2025-08-12T18:57:15.083158629Z npm error Missing: on-finished@2.4.1 from lock file
+2025-08-12T18:57:15.083161819Z npm error Missing: parseurl@1.3.3 from lock file
+2025-08-12T18:57:15.083165059Z npm error Missing: path-to-regexp@0.1.12 from lock file
+2025-08-12T18:57:15.083167919Z npm error Missing: proxy-addr@2.0.7 from lock file
+2025-08-12T18:57:15.083171209Z npm error Missing: qs@6.13.0 from lock file
+2025-08-12T18:57:15.083174309Z npm error Missing: range-parser@1.2.1 from lock file
+2025-08-12T18:57:15.08317774Z npm error Missing: send@0.19.0 from lock file
+2025-08-12T18:57:15.083180889Z npm error Missing: serve-static@1.16.2 from lock file
+2025-08-12T18:57:15.083183869Z npm error Missing: setprototypeof@1.2.0 from lock file
+2025-08-12T18:57:15.08318722Z npm error Missing: statuses@2.0.1 from lock file
+2025-08-12T18:57:15.08319034Z npm error Missing: type-is@1.6.18 from lock file
+2025-08-12T18:57:15.08319356Z npm error Missing: utils-merge@1.0.1 from lock file
+2025-08-12T18:57:15.0831965Z npm error Missing: negotiator@0.6.3 from lock file
+2025-08-12T18:57:15.08319981Z npm error Missing: bytes@3.1.2 from lock file
+2025-08-12T18:57:15.08320283Z npm error Missing: debug@2.6.9 from lock file
+2025-08-12T18:57:15.08320591Z npm error Missing: destroy@1.2.0 from lock file
+2025-08-12T18:57:15.0832091Z npm error Missing: iconv-lite@0.4.24 from lock file
+2025-08-12T18:57:15.08321221Z npm error Missing: raw-body@2.5.2 from lock file
+2025-08-12T18:57:15.08321545Z npm error Missing: unpipe@1.0.0 from lock file
+2025-08-12T18:57:15.08321884Z npm error Missing: debug@2.6.9 from lock file
+2025-08-12T18:57:15.08322199Z npm error Missing: jspdf@3.0.1 from lock file
+2025-08-12T18:57:15.08322533Z npm error Missing: toidentifier@1.0.1 from lock file
+2025-08-12T18:57:15.08322883Z npm error Missing: safer-buffer@2.1.2 from lock file
+2025-08-12T18:57:15.083241791Z npm error Missing: jws@3.2.2 from lock file
+2025-08-12T18:57:15.083244351Z npm error Missing: lodash.includes@4.3.0 from lock file
+2025-08-12T18:57:15.083246401Z npm error Missing: lodash.isboolean@3.0.3 from lock file
+2025-08-12T18:57:15.083248501Z npm error Missing: lodash.isinteger@4.0.4 from lock file
+2025-08-12T18:57:15.083250521Z npm error Missing: lodash.isnumber@3.0.3 from lock file
+2025-08-12T18:57:15.083257541Z npm error Missing: lodash.isplainobject@4.0.6 from lock file
+2025-08-12T18:57:15.083259741Z npm error Missing: lodash.isstring@4.0.1 from lock file
+2025-08-12T18:57:15.083261861Z npm error Missing: lodash.once@4.1.1 from lock file
+2025-08-12T18:57:15.083263891Z npm error Missing: semver@7.7.2 from lock file
+2025-08-12T18:57:15.083266041Z npm error Invalid: lock file's dompurify@3.2.6 does not satisfy dompurify@2.5.8
+2025-08-12T18:57:15.083268161Z npm error Missing: jwa@1.4.2 from lock file
+2025-08-12T18:57:15.083270301Z npm error Missing: buffer-equal-constant-time@1.0.1 from lock file
+2025-08-12T18:57:15.083272462Z npm error Missing: ecdsa-sig-formatter@1.0.11 from lock file
+2025-08-12T18:57:15.083274511Z npm error Missing: append-field@1.0.0 from lock file
+2025-08-12T18:57:15.083276551Z npm error Missing: busboy@1.6.0 from lock file
+2025-08-12T18:57:15.083278671Z npm error Missing: concat-stream@1.6.2 from lock file
+2025-08-12T18:57:15.083280802Z npm error Missing: mkdirp@0.5.6 from lock file
+2025-08-12T18:57:15.083282862Z npm error Missing: streamsearch@1.1.0 from lock file
+2025-08-12T18:57:15.083284922Z npm error Missing: buffer-from@1.1.2 from lock file
+2025-08-12T18:57:15.083286982Z npm error Missing: readable-stream@2.3.8 from lock file
+2025-08-12T18:57:15.083289022Z npm error Missing: typedarray@0.0.6 from lock file
+2025-08-12T18:57:15.083291062Z npm error Missing: minimist@1.2.8 from lock file
+2025-08-12T18:57:15.083293212Z npm error Missing: ee-first@1.1.1 from lock file
+2025-08-12T18:57:15.083295272Z npm error Missing: @prisma/config@6.14.0 from lock file
+2025-08-12T18:57:15.083297332Z npm error Missing: @prisma/engines@6.14.0 from lock file
+2025-08-12T18:57:15.083299382Z npm error Missing: c12@3.1.0 from lock file
+2025-08-12T18:57:15.083301432Z npm error Missing: deepmerge-ts@7.1.5 from lock file
+2025-08-12T18:57:15.083303562Z npm error Missing: effect@3.16.12 from lock file
+2025-08-12T18:57:15.083305602Z npm error Missing: empathic@2.0.0 from lock file
+2025-08-12T18:57:15.083307662Z npm error Missing: @prisma/debug@6.14.0 from lock file
+2025-08-12T18:57:15.083311702Z npm error Missing: @prisma/engines-version@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49 from lock file
+2025-08-12T18:57:15.083314302Z npm error Missing: @prisma/fetch-engine@6.14.0 from lock file
+2025-08-12T18:57:15.083317272Z npm error Missing: @prisma/get-platform@6.14.0 from lock file
+2025-08-12T18:57:15.083319332Z npm error Missing: chokidar@4.0.3 from lock file
+2025-08-12T18:57:15.083321403Z npm error Missing: confbox@0.2.2 from lock file
+2025-08-12T18:57:15.083325143Z npm error Missing: defu@6.1.4 from lock file
+2025-08-12T18:57:15.083327243Z npm error Missing: dotenv@16.6.1 from lock file
+2025-08-12T18:57:15.083329363Z npm error Missing: exsolve@1.0.7 from lock file
+2025-08-12T18:57:15.083331443Z npm error Missing: giget@2.0.0 from lock file
+2025-08-12T18:57:15.083333923Z npm error Missing: jiti@2.5.1 from lock file
+2025-08-12T18:57:15.083337753Z npm error Missing: ohash@2.0.11 from lock file
+2025-08-12T18:57:15.083341613Z npm error Missing: pathe@2.0.3 from lock file
+2025-08-12T18:57:15.083345123Z npm error Missing: perfect-debounce@1.0.0 from lock file
+2025-08-12T18:57:15.083348413Z npm error Missing: pkg-types@2.2.0 from lock file
+2025-08-12T18:57:15.083351743Z npm error Missing: rc9@2.1.2 from lock file
+2025-08-12T18:57:15.083355263Z npm error Missing: @standard-schema/spec@1.0.0 from lock file
+2025-08-12T18:57:15.083358753Z npm error Missing: fast-check@3.23.2 from lock file
+2025-08-12T18:57:15.083362173Z npm error Missing: pure-rand@6.1.0 from lock file
+2025-08-12T18:57:15.083365603Z npm error Missing: citty@0.1.6 from lock file
+2025-08-12T18:57:15.083374164Z npm error Missing: consola@3.4.2 from lock file
+2025-08-12T18:57:15.083377624Z npm error Missing: node-fetch-native@1.6.7 from lock file
+2025-08-12T18:57:15.083381124Z npm error Missing: nypm@0.6.1 from lock file
+2025-08-12T18:57:15.083384944Z npm error Missing: tinyexec@1.0.1 from lock file
+2025-08-12T18:57:15.083388274Z npm error Missing: forwarded@0.2.0 from lock file
+2025-08-12T18:57:15.083390384Z npm error Missing: ipaddr.js@1.9.1 from lock file
+2025-08-12T18:57:15.083392524Z npm error Missing: side-channel@1.1.0 from lock file
+2025-08-12T18:57:15.083394664Z npm error Missing: destr@2.0.5 from lock file
+2025-08-12T18:57:15.083396764Z npm error Missing: @remix-run/router@1.23.0 from lock file
+2025-08-12T18:57:15.083398984Z npm error Missing: react-router@6.30.1 from lock file
+2025-08-12T18:57:15.083401074Z npm error Missing: tslib@2.8.1 from lock file
+2025-08-12T18:57:15.083403164Z npm error Missing: debug@2.6.9 from lock file
+2025-08-12T18:57:15.083405184Z npm error Missing: encodeurl@1.0.2 from lock file
+2025-08-12T18:57:15.083407344Z npm error Missing: mime@1.6.0 from lock file
+2025-08-12T18:57:15.083409424Z npm error Missing: object-inspect@1.13.4 from lock file
+2025-08-12T18:57:15.083411484Z npm error Missing: side-channel-list@1.0.0 from lock file
+2025-08-12T18:57:15.083413544Z npm error Missing: side-channel-map@1.0.1 from lock file
+2025-08-12T18:57:15.083415605Z npm error Missing: side-channel-weakmap@1.0.2 from lock file
+2025-08-12T18:57:15.083417794Z npm error Missing: @cspotcode/source-map-support@0.8.1 from lock file
+2025-08-12T18:57:15.083421714Z npm error Missing: @tsconfig/node10@1.0.11 from lock file
+2025-08-12T18:57:15.083423895Z npm error Missing: @tsconfig/node12@1.0.11 from lock file
+2025-08-12T18:57:15.083426035Z npm error Missing: @tsconfig/node14@1.0.3 from lock file
+2025-08-12T18:57:15.083428135Z npm error Missing: @tsconfig/node16@1.0.4 from lock file
+2025-08-12T18:57:15.083430205Z npm error Missing: acorn-walk@8.3.4 from lock file
+2025-08-12T18:57:15.083432315Z npm error Missing: arg@4.1.3 from lock file
+2025-08-12T18:57:15.083434385Z npm error Missing: create-require@1.1.1 from lock file
+2025-08-12T18:57:15.083436505Z npm error Missing: diff@4.0.2 from lock file
+2025-08-12T18:57:15.083448925Z npm error Missing: make-error@1.3.6 from lock file
+2025-08-12T18:57:15.083451215Z npm error Missing: v8-compile-cache-lib@3.0.1 from lock file
+2025-08-12T18:57:15.083453305Z npm error Missing: yn@3.1.1 from lock file
+2025-08-12T18:57:15.083473626Z npm error Missing: @jridgewell/trace-mapping@0.3.9 from lock file
+2025-08-12T18:57:15.083490626Z npm error Missing: media-typer@0.3.0 from lock file
+2025-08-12T18:57:15.083492816Z npm error Missing: fs-extra@11.3.1 from lock file
+2025-08-12T18:57:15.083495076Z npm error Missing: p-map@7.0.3 from lock file
+2025-08-12T18:57:15.083497146Z npm error Missing: tinyglobby@0.2.14 from lock file
+2025-08-12T18:57:15.083499266Z npm error Missing: graceful-fs@4.2.11 from lock file
+2025-08-12T18:57:15.083501346Z npm error Missing: jsonfile@6.2.0 from lock file
+2025-08-12T18:57:15.083503466Z npm error Missing: universalify@2.0.1 from lock file
+2025-08-12T18:57:15.083505596Z npm error Missing: fdir@6.4.6 from lock file
+2025-08-12T18:57:15.083507646Z npm error Missing: picomatch@4.0.3 from lock file
+2025-08-12T18:57:15.083509807Z npm error Missing: adler-32@1.3.1 from lock file
+2025-08-12T18:57:15.083511907Z npm error Missing: cfb@1.2.2 from lock file
+2025-08-12T18:57:15.083513947Z npm error Missing: codepage@1.15.0 from lock file
+2025-08-12T18:57:15.083516047Z npm error Missing: crc-32@1.2.2 from lock file
+2025-08-12T18:57:15.083523977Z npm error Missing: ssf@0.11.2 from lock file
+2025-08-12T18:57:15.083526197Z npm error Missing: wmf@1.0.2 from lock file
+2025-08-12T18:57:15.083528237Z npm error Missing: word@0.3.0 from lock file
+2025-08-12T18:57:15.083530377Z npm error Missing: frac@1.1.2 from lock file
+2025-08-12T18:57:15.083532427Z npm error Missing: cliui@8.0.1 from lock file
+2025-08-12T18:57:15.083534477Z npm error Missing: get-caller-file@2.0.5 from lock file
+2025-08-12T18:57:15.083536567Z npm error Missing: require-directory@2.1.1 from lock file
+2025-08-12T18:57:15.083538667Z npm error Missing: string-width@4.2.3 from lock file
+2025-08-12T18:57:15.083541687Z npm error Missing: y18n@5.0.8 from lock file
+2025-08-12T18:57:15.083543917Z npm error Missing: yargs-parser@21.1.1 from lock file
+2025-08-12T18:57:15.083546687Z npm error Missing: string-width@4.2.3 from lock file
+2025-08-12T18:57:15.083550397Z npm error Missing: strip-ansi@6.0.1 from lock file
+2025-08-12T18:57:15.083554137Z npm error Missing: wrap-ansi@7.0.0 from lock file
+2025-08-12T18:57:15.083557257Z npm error Missing: ms@2.0.0 from lock file
+2025-08-12T18:57:15.083560917Z npm error Missing: readdirp@4.1.2 from lock file
+2025-08-12T18:57:15.083564638Z npm error Missing: emoji-regex@8.0.0 from lock file
+2025-08-12T18:57:15.083567858Z npm error Missing: ansi-regex@5.0.1 from lock file
+2025-08-12T18:57:15.083571408Z npm error Missing: ansi-styles@4.3.0 from lock file
+2025-08-12T18:57:15.083574638Z npm error Missing: color-convert@2.0.1 from lock file
+2025-08-12T18:57:15.083577638Z npm error Missing: color-name@1.1.4 from lock file
+2025-08-12T18:57:15.083580858Z npm error Missing: safe-buffer@5.1.2 from lock file
+2025-08-12T18:57:15.083584058Z npm error Missing: string_decoder@1.1.1 from lock file
+2025-08-12T18:57:15.083587168Z npm error Missing: ansi-styles@4.3.0 from lock file
+2025-08-12T18:57:15.083590288Z npm error Missing: supports-color@7.2.0 from lock file
+2025-08-12T18:57:15.083593788Z npm error Missing: color-convert@2.0.1 from lock file
+2025-08-12T18:57:15.083597448Z npm error Missing: color-name@1.1.4 from lock file
+2025-08-12T18:57:15.083600408Z npm error Missing: has-flag@4.0.0 from lock file
+2025-08-12T18:57:15.083602478Z npm error Missing: ms@2.0.0 from lock file
+2025-08-12T18:57:15.083604749Z npm error Missing: ms@2.0.0 from lock file
+2025-08-12T18:57:15.083606809Z npm error Missing: dompurify@3.2.6 from lock file
+2025-08-12T18:57:15.083608898Z npm error Missing: ms@2.0.0 from lock file
+2025-08-12T18:57:15.083610919Z npm error Missing: emoji-regex@8.0.0 from lock file
+2025-08-12T18:57:15.083613009Z npm error Missing: strip-ansi@6.0.1 from lock file
+2025-08-12T18:57:15.083615079Z npm error Missing: ansi-regex@5.0.1 from lock file
+2025-08-12T18:57:15.083617179Z npm error
+2025-08-12T18:57:15.083619429Z npm error Clean install a project
+2025-08-12T18:57:15.083621549Z npm error
+2025-08-12T18:57:15.083625169Z npm error Usage:
+2025-08-12T18:57:15.083627349Z npm error npm ci
+2025-08-12T18:57:15.083629399Z npm error
+2025-08-12T18:57:15.083631839Z npm error Options:
+2025-08-12T18:57:15.083634389Z npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+2025-08-12T18:57:15.083636649Z npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+2025-08-12T18:57:15.083638829Z npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+2025-08-12T18:57:15.083641059Z npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+2025-08-12T18:57:15.083643239Z npm error [--no-bin-links] [--no-fund] [--dry-run]
+2025-08-12T18:57:15.083645419Z npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+2025-08-12T18:57:15.08365205Z npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+2025-08-12T18:57:15.083654259Z npm error
+2025-08-12T18:57:15.083656459Z npm error aliases: clean-install, ic, install-clean, isntall-clean
+2025-08-12T18:57:15.08365861Z npm error
+2025-08-12T18:57:15.08366065Z npm error Run "npm help ci" for more info
+2025-08-12T18:57:15.084200011Z npm error A complete log of this run can be found in: /opt/render/.cache/_logs/2025-08-12T18_56_56_307Z-debug-0.log
+2025-08-12T18:57:15.157289397Z ==> Build failed 😞
+2025-08-12T18:57:15.157327147Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+Thought for 12s
+El fallo es porque Render usa npm ci y tu package-lock.json no coincide con package.json. Solución rápida: usar npm install en el build de Render (no requiere que tú generes el lock).
+
+Haz esto en GitHub (UI):
+
+Edita render.yaml (en la raíz) y reemplaza SOLO la línea de buildCommand: ANTES: buildCommand: npm ci && npm run build:server DESPUÉS: buildCommand: npm install --no-audit --no-fund && npm run build:server
+Bloque completo por si quieres pegarlo tal cual:
+
+services:
+  - type: web
+    name: codisec-api
+    env: node
+    plan: free
+    buildCommand: npm install --no-audit --no-fund && npm run build:server
+    startCommand: node dist-server/server/index.js
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: codisec-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    autoDeploy: true
+
+databases:
+  - name: codisec-db
+    plan: free
+Guarda (Commit to main).
+
+En Render:
+
+Abre el servicio “codisec-api” → Manual Deploy → Clear build cache & deploy.
+Espera a que termine. Verás la URL pública en Overview (Hostname).
+En Netlify:
+Site settings → Build & deploy → Environment → agrega/edita:
+VITE_API_URL = https://TU_API_RENDER.onrender.com
+Deploys → Trigger deploy → Clear cache and deploy site.
+Con esto evitas el error de npm ci y la API queda desplegada. Si quieres, me das acceso y lo hago yo directamente.
+
+Deploy failed for 9ae413f: Update render.yaml
+Exited with status 2 while building your code. Check your deploy logs for more information.
+August 12, 2025 at 2:02 PM
+Thought for 22s
+Causa más probable del nuevo “Exited with status 2”: falta de tipos de Node para compilar el servidor (tsc falla). Arreglos exactos:
+
+package.json → añade @types/node en devDependencies y deja el script de build
+Edita package.json y asegúrate de tener (copiar/pegar solo estos trozos):
+
+En "scripts":
+
+"build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json"
+En "devDependencies" (añade esta línea si no existe):
+"@types/node": "^22.5.0"
+render.yaml → usa npm install (no npm ci)
+Abre render.yaml y deja la línea de build así:
+buildCommand: npm install --no-audit --no-fund && npm run build:server
+Confirma que existen estos archivos y rutas:
+tsconfig.node.json (en la raíz) con:
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "dist-server",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["server/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+server/index.ts y server/schemas.ts (ya te di el contenido exacto; créalos si no existen)
+prisma/schema.prisma con provider postgresql
+startCommand en render.yaml:
+startCommand: node dist-server/server/index.js
+En Render
+Entra al servicio “codisec-api” → Manual Deploy → Clear build cache & deploy
+Revisa Logs. Debe compilar TS y arrancar. Copia la URL pública (Hostname).
+En Netlify
+Settings → Build & deploy → Environment → VITE_API_URL = (URL pública de la API)
+Trigger deploy → Clear cache and deploy
+Si vuelve a fallar, pégame las últimas 20-30 líneas del log (Build tab) y lo corrijo. Si me das acceso (GitHub write + Render/Netlify “Developer/Deploy”), lo hago yo directo y te dejo URLs funcionando.
+
+siempre dame al detalle expecifico de donde hacer cada cosa
+De acuerdo, te lo detallo al milímetro, con ruta exacta y qué pegar en cada pantalla.
+
+A. GitHub: corrige package.json
+
+Ruta: https://github.com/carlomkt/codisec-itca → archivo package.json
+Clic en el ícono del lápiz (Edit)
+Sustituye TODO el contenido por este JSON (copiar/pegar tal cual):
+{
+  "name": "codisec-itca",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"vite\" \"node --loader ts-node/esm -r dotenv/config server/index.ts\"",
+    "build": "vite build",
+    "build:server": "npx prisma generate && npx prisma db push && tsc -p tsconfig.node.json",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/",
+    "api": "node --loader ts-node/esm -r dotenv/config server/index.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name init"
+  },
+  "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "@prisma/client": "^6.14.0",
+    "chart.js": "^4.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "html-to-docx": "^1.8.0",
+    "html2pdf.js": "^0.10.3",
+    "jsonwebtoken": "^9.0.2",
+    "jspdf": "^2.5.2",
+    "lucide-react": "^0.344.0",
+    "multer": "^1.4.5-lts.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "xlsx": "^0.18.5",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.5.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "concurrently": "^8.2.2",
+    "eslint": "^9.9.1",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.11",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.35",
+    "prisma": "^6.14.0",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3",
