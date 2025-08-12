@@ -72,9 +72,17 @@ const ActividadesPage: React.FC = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<Actividad>(emptyActividad);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [lineas, setLineas] = useState<string[]>([]);
+  const [estados, setEstados] = useState<string[]>([]);
 
   useEffect(() => { fetchJSON<Actividad[]>('/api/actividadesITCA', STORAGE, []).then(setItems); }, []);
   useEffect(() => { postJSON('/api/actividadesITCA', items, STORAGE); }, [items]);
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/catalog/lineas').then(r=>r.json()).catch(()=>[]),
+      fetch('/api/catalog/estados').then(r=>r.json()).catch(()=>[]),
+    ]).then(([ls, es]) => { setLineas(ls.map((x:any)=>x.value)); setEstados(es.map((x:any)=>x.value)); });
+  }, []);
 
   const filtered = useMemo(() => {
     const q = filter.trim().toLowerCase();
@@ -296,7 +304,7 @@ const ActividadesPage: React.FC = () => {
                 <label className="block text-sm font-medium">Línea Estratégica</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.lineaEstrategica} onChange={e => setForm({ ...form, lineaEstrategica: e.target.value })}>
                   <option value="">Seleccione…</option>
-                  {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
+                  {lineas.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
                 {errors.lineaEstrategica && <div className="text-red-600 text-xs mt-1">{errors.lineaEstrategica}</div>}
               </div>
@@ -336,7 +344,7 @@ const ActividadesPage: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium">Estado</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.estado || 'Programado'} onChange={e => setForm({ ...form, estado: e.target.value })}>
-                  {ESTADOS.map(s => <option key={s}>{s}</option>)}
+                  {estados.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>

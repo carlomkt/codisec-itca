@@ -154,6 +154,11 @@ async function seedCatalog() {
     const ies = ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen'];
     await prisma.catalogItem.createMany({ data: ies.map((v, i) => ({ type: 'ie', value: v, order: i })) });
   }
+  const countDistritos = await prisma.catalogItem.count({ where: { type: 'distritos' } });
+  if (countDistritos === 0) {
+    const dists = ['Chorrillos Centro','Matellini','San Juan Bautista','San Pedro'];
+    await prisma.catalogItem.createMany({ data: dists.map((v, i) => ({ type: 'distritos', value: v, order: i })) });
+  }
 }
 seedCatalog().catch(() => {});
 

@@ -6,6 +6,11 @@ type CatalogItem = { id?: number; value: string; active?: boolean; order?: numbe
 const types = [
   { key: 'lineas', label: 'Líneas Estratégicas' },
   { key: 'estados', label: 'Estados de Actividad' },
+  { key: 'publicos', label: 'Públicos (Agenda)' },
+  { key: 'niveles', label: 'Niveles Educativos (Agenda)' },
+  { key: 'turnos', label: 'Turnos (Agenda)' },
+  { key: 'ie', label: 'Instituciones Educativas' },
+  { key: 'distritos', label: 'Distritos' },
 ];
 
 const CatalogPage: React.FC = () => {
@@ -22,20 +27,9 @@ const CatalogPage: React.FC = () => {
     setDirty(false);
   }
 
-  function add() {
-    setItems(prev => [...prev, { value: '', active: true }]);
-    setDirty(true);
-  }
-
-  function remove(idx: number) {
-    setItems(prev => prev.filter((_, i) => i !== idx));
-    setDirty(true);
-  }
-
-  function update(idx: number, patch: Partial<CatalogItem>) {
-    setItems(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
-    setDirty(true);
-  }
+  function add() { setItems(prev => [...prev, { value: '', active: true }]); setDirty(true); }
+  function remove(idx: number) { setItems(prev => prev.filter((_, i) => i !== idx)); setDirty(true); }
+  function update(idx: number, patch: Partial<CatalogItem>) { setItems(prev => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it))); setDirty(true); }
 
   async function save() {
     const payload = items.map((it, i) => ({ value: it.value, active: it.active ?? true, order: i }));
