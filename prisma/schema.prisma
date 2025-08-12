@@ -33,11 +33,27 @@ model Responsable {
 }
 
 model ActividadITCA {
-  id               Int     @id
+  id               Int      @id
   lineaEstrategica String
   actividad        String
   responsable      String
   fecha            DateTime
+  // Campos extendidos ITCA
+  objetivo         String?
+  meta             String?
+  indicador        String?
+  producto         String?
+  aliados          String?
+  recursos         String?
+  fechaProgramada  DateTime?
+  fechaEjecucion   DateTime?
+  estado           String   @default("Programado")
+  observaciones    String?
+  distrito         String?
+  poblacionObjetivo String?
+  ubicacion        String?
+  evidencias       Json?
+  trimestre        String?
 }
 
 model Oficio {

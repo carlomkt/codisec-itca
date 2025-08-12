@@ -51,6 +51,21 @@ export const ActividadITCASchema = z.object({
   actividad: z.string().min(1),
   responsable: z.string().optional().default(''),
   fecha: z.string().min(1),
+  objetivo: z.string().optional(),
+  meta: z.string().optional(),
+  indicador: z.string().optional(),
+  producto: z.string().optional(),
+  aliados: z.string().optional(),
+  recursos: z.string().optional(),
+  fechaProgramada: z.string().optional(),
+  fechaEjecucion: z.string().optional(),
+  estado: z.string().optional(),
+  observaciones: z.string().optional(),
+  distrito: z.string().optional(),
+  poblacionObjetivo: z.string().optional(),
+  ubicacion: z.string().optional(),
+  evidencias: z.any().optional(),
+  trimestre: z.string().optional(),
 });
 
 export const OficioSchema = z.object({
