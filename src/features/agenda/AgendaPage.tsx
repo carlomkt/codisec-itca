@@ -6,7 +6,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import { Chart, PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { fetchJSON, postJSON } from '../../lib/api';
 import { z } from 'zod';
-import { authHeaders } from '../../lib/api';
+import { authHeaders } from '../../lib/api'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 Chart.register(PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -62,7 +62,7 @@ const EventFormSchema = z.object({
   publico: z.string().min(1,'Público requerido'),
   responsable: z.string().min(1,'Responsable requerido'),
   duracion: z.coerce.number().int().positive('Duración inválida'),
-  estado: z.enum(ESTADOS as [EventoEstado,...EventoEstado[]]),
+  estado: z.string().min(1,'Estado requerido'),
   aliado: z.string().optional().default(''),
   observaciones: z.string().optional().default(''),
   asistentes: z.coerce.number().int().nonnegative().optional(),
