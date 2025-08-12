@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchJSON, postJSON } from '../../lib/api';
 import { z } from 'zod';
+import * as XLSX from 'xlsx';
 
 const ActividadSchema = z.object({
   id: z.number().int(),
@@ -27,6 +28,8 @@ const ActividadSchema = z.object({
 
 type Actividad = z.infer<typeof ActividadSchema>;
 
+type EvidenciaMeta = { name: string; size: number; type: string; lastModified: number; contentBase64?: string };
+
 const STORAGE = 'actividadesITCA';
 
 const emptyActividad: Actividad = {
@@ -51,6 +54,16 @@ const emptyActividad: Actividad = {
   evidencias: undefined,
   trimestre: '',
 };
+
+const LINEAS = [
+  'Prevención Social',
+  'Prevención Comunitaria',
+  'Persecución del Delito',
+  'Atención a Víctimas',
+  'Rehabilitación',
+];
+
+const ESTADOS = ['Programado', 'En Proceso', 'Completado', 'Cancelado'];
 
 const ActividadesPage: React.FC = () => {
   const [items, setItems] = useState<Actividad[]>([]);
@@ -90,11 +103,89 @@ const ActividadesPage: React.FC = () => {
     setModalOpen(false);
   }
 
+  function onEvidenciasChange(files: FileList | null) {
+    if (!files || files.length === 0) { setForm({ ...form, evidencias: [] }); return; }
+    const readers = Array.from(files).map(file => new Promise<EvidenciaMeta>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ name: file.name, size: file.size, type: file.type, lastModified: file.lastModified, contentBase64: String(reader.result) });
+      reader.readAsDataURL(file);
+    }));
+    Promise.all(readers).then(metas => setForm({ ...form, evidencias: metas }));
+  }
+
+  function previewEvidencia(ev: EvidenciaMeta) {
+    if (!ev.contentBase64) return alert('No hay vista previa.');
+    const isImage = ev.type.startsWith('image/');
+    const isPdf = ev.type === 'application/pdf';
+    const html = isImage ? `<img src="${ev.contentBase64}" style="max-width:100%"/>` : isPdf ? `<embed type="application/pdf" src="${ev.contentBase64}" width="100%" height="600px" />` : `<p>${ev.name}</p>`;
+    const w = window.open('', '_blank');
+    if (w) w.document.write(`<html><head><title>${ev.name}</title></head><body>${html}</body></html>`);
+  }
+
+  function exportCSV() {
+    const rows = items.map(a => ({
+      id: a.id,
+      trimestre: a.trimestre || '',
+      lineaEstrategica: a.lineaEstrategica,
+      actividad: a.actividad,
+      responsable: a.responsable || '',
+      distrito: a.distrito || '',
+      poblacionObjetivo: a.poblacionObjetivo || '',
+      fechaProgramada: a.fechaProgramada || '',
+      fechaEjecucion: a.fechaEjecucion || '',
+      estado: a.estado || '',
+      objetivo: a.objetivo || '',
+      meta: a.meta || '',
+      indicador: a.indicador || '',
+      producto: a.producto || '',
+      aliados: a.aliados || '',
+      recursos: a.recursos || '',
+      observaciones: a.observaciones || '',
+      ubicacion: a.ubicacion || '',
+    }));
+    const header = Object.keys(rows[0] || {});
+    const csv = [header.join(','), ...rows.map(r => header.map(h => JSON.stringify((r as any)[h] ?? '')).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'itca_actividades.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+
+  function exportXLSX() {
+    const data = items.map(a => ({
+      ID: a.id,
+      Trimestre: a.trimestre || '',
+      'Línea': a.lineaEstrategica,
+      Actividad: a.actividad,
+      Responsable: a.responsable || '',
+      Distrito: a.distrito || '',
+      'Población Objetivo': a.poblacionObjetivo || '',
+      'Fecha Programada': a.fechaProgramada || '',
+      'Fecha Ejecución': a.fechaEjecucion || '',
+      Estado: a.estado || '',
+      Objetivo: a.objetivo || '',
+      Meta: a.meta || '',
+      Indicador: a.indicador || '',
+      Producto: a.producto || '',
+      Aliados: a.aliados || '',
+      Recursos: a.recursos || '',
+      Observaciones: a.observaciones || '',
+      Ubicación: a.ubicacion || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ITCA');
+    XLSX.writeFile(wb, 'itca_actividades.xlsx');
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold">Actividades ITCA</h1>
-        <button className="btn" onClick={openNew}>+ Nueva Actividad</button>
+        <div className="flex gap-2">
+          <button className="btn" onClick={openNew}>+ Nueva Actividad</button>
+          <button className="btn" onClick={exportCSV}>Exportar CSV</button>
+          <button className="btn" onClick={exportXLSX}>Exportar Excel</button>
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3 md:items-end">
@@ -150,7 +241,10 @@ const ActividadesPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium">Línea Estratégica</label>
-                <input className="border rounded px-3 py-2 w-full" value={form.lineaEstrategica} onChange={e => setForm({ ...form, lineaEstrategica: e.target.value })} />
+                <select className="border rounded px-3 py-2 w-full" value={form.lineaEstrategica} onChange={e => setForm({ ...form, lineaEstrategica: e.target.value })}>
+                  <option value="">Seleccione…</option>
+                  {LINEAS.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
                 {errors.lineaEstrategica && <div className="text-red-600 text-xs mt-1">{errors.lineaEstrategica}</div>}
               </div>
               <div className="md:col-span-2">
@@ -189,10 +283,7 @@ const ActividadesPage: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium">Estado</label>
                 <select className="border rounded px-3 py-2 w-full" value={form.estado || 'Programado'} onChange={e => setForm({ ...form, estado: e.target.value })}>
-                  <option>Programado</option>
-                  <option>En Proceso</option>
-                  <option>Completado</option>
-                  <option>Cancelado</option>
+                  {ESTADOS.map(s => <option key={s}>{s}</option>)}
                 </select>
               </div>
               <div>
@@ -230,6 +321,21 @@ const ActividadesPage: React.FC = () => {
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium">Observaciones</label>
                 <textarea rows={3} className="border rounded px-3 py-2 w-full" value={form.observaciones || ''} onChange={e => setForm({ ...form, observaciones: e.target.value })} />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium">Evidencias (imágenes o PDF)</label>
+                <input type="file" accept="image/*,application/pdf" multiple onChange={e => onEvidenciasChange(e.target.files)} />
+                {Array.isArray(form.evidencias) && form.evidencias.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                    {form.evidencias.map((ev: EvidenciaMeta, idx: number) => (
+                      <button key={idx} type="button" className="border rounded p-2 text-left hover:bg-gray-50" onClick={() => previewEvidencia(ev)}>
+                        <div className="text-sm font-medium truncate">{ev.name}</div>
+                        <div className="text-xs text-gray-500">{(ev.size/1024).toFixed(1)} KB</div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="md:col-span-2 flex justify-end gap-2">
