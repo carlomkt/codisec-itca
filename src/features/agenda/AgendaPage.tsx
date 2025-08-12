@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { Chart, PieController, BarController, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
-import { fetchJSON, postJSON } from '../../lib/api';
+import { fetchJSON, postJSON, loadCatalogValues } from '../../lib/api';
 import { z } from 'zod';
 import { authHeaders } from '../../lib/api'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
@@ -91,21 +91,22 @@ const AgendaPage: React.FC = () => {
   const [responsablesCat, setResponsablesCat] = useState<string[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/catalog/publicos').then(r=>r.json()).catch(()=>[]),
-      fetch('/api/catalog/niveles').then(r=>r.json()).catch(()=>[]),
-      fetch('/api/catalog/turnos').then(r=>r.json()).catch(()=>[]),
-      fetch('/api/catalog/estados').then(r=>r.json()).catch(()=>[]),
-      fetch('/api/catalog/ie').then(r=>r.json()).catch(()=>[]),
-      fetchJSON<any[]>('/api/responsables','responsables',[])
-    ]).then(([pub,niv,tur,est,iesData,resps])=>{
-      setPublicos(pub.map((x:any)=>x.value));
-      setNiveles(niv.map((x:any)=>x.value));
-      setTurnos(tur.map((x:any)=>x.value));
-      setEstados(est.map((x:any)=>x.value));
-      setIEs(iesData.map((x:any)=>x.value));
+    (async () => {
+      const [pub, niv, tur, est, iesData, resps] = await Promise.all([
+        loadCatalogValues('publicos', ['Estudiantes','Docentes','Padres','Comunidad']),
+        loadCatalogValues('niveles', ['Inicial','Primaria','Secundaria','Superior']),
+        loadCatalogValues('turnos', ['Mañana','Tarde','Noche']),
+        loadCatalogValues('estados', ['Confirmado','Pendiente','Realizado','Postergado','Cancelado']),
+        loadCatalogValues('ie', ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen']),
+        fetchJSON<any[]>('/api/responsables','responsables',[]),
+      ]);
+      setPublicos(pub);
+      setNiveles(niv);
+      setTurnos(tur);
+      setEstados(est);
+      setIEs(iesData);
       setResponsablesCat(resps.map(r=>r.nombre));
-    });
+    })();
   }, []);
 
   useEffect(() => {

@@ -52,3 +52,15 @@ export async function ensureDevToken() {
 export function apiFetch(path: string, init?: RequestInit) {
   return fetch(withBase(path), { ...init, headers: { ...init?.headers, ...authHeaders() } });
 }
+
+export async function loadCatalogValues(type: string, defaultValues: string[]): Promise<string[]> {
+  try {
+    const res = await fetch(withBase(`/api/catalog/${type}`));
+    if (!res.ok) throw new Error('no api');
+    const data = await res.json();
+    if (Array.isArray(data)) return data.map((x: any) => String(x.value));
+    return defaultValues;
+  } catch {
+    return defaultValues;
+  }
+}

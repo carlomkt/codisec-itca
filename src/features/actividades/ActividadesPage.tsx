@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchJSON, postJSON } from '../../lib/api';
+import { fetchJSON, postJSON, loadCatalogValues } from '../../lib/api';
 import { z } from 'zod';
 import * as XLSX from 'xlsx';
 
@@ -78,10 +78,14 @@ const ActividadesPage: React.FC = () => {
   useEffect(() => { fetchJSON<Actividad[]>('/api/actividadesITCA', STORAGE, []).then(setItems); }, []);
   useEffect(() => { postJSON('/api/actividadesITCA', items, STORAGE); }, [items]);
   useEffect(() => {
-    Promise.all([
-      fetch('/api/catalog/lineas').then(r=>r.json()).catch(()=>[]),
-      fetch('/api/catalog/estados').then(r=>r.json()).catch(()=>[]),
-    ]).then(([ls, es]) => { setLineas(ls.map((x:any)=>x.value)); setEstados(es.map((x:any)=>x.value)); });
+    (async () => {
+      const [ls, es] = await Promise.all([
+        loadCatalogValues('lineas', ['Prevención Social','Prevención Comunitaria','Persecución del Delito','Atención a Víctimas','Rehabilitación']),
+        loadCatalogValues('estados', ['Programado','En Proceso','Completado','Cancelado']),
+      ]);
+      setLineas(ls);
+      setEstados(es);
+    })();
   }, []);
 
   const filtered = useMemo(() => {
