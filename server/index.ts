@@ -104,6 +104,39 @@ app.get('/api/actividadesITCA', async (_req, res) => {
 });
 app.get('/api/oficios', async (_req, res) => { const data = await prisma.oficio.findMany(); res.json(data.map(o => ({ ...o, fecha: o.fecha.toISOString() }))); });
 
+// Catalog endpoints
+app.get('/api/catalog/:type', async (req, res) => {
+  const type = String(req.params.type);
+  const data = await prisma.catalogItem.findMany({ where: { type, active: true }, orderBy: [{ order: 'asc' }] });
+  res.json(data);
+});
+
+app.post('/api/catalog/:type', authRequired, async (req, res) => {
+  const type = String(req.params.type);
+  const parsed = ArrayOf.catalog.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  await prisma.$transaction([
+    prisma.catalogItem.deleteMany({ where: { type } }),
+    prisma.catalogItem.createMany({ data: parsed.data.map(c => ({ type, value: c.value, active: c.active ?? true, order: c.order ?? null })) }),
+  ]);
+  res.json({ ok: true });
+});
+
+// simple seed
+async function seedCatalog() {
+  const countLineas = await prisma.catalogItem.count({ where: { type: 'lineas' } });
+  if (countLineas === 0) {
+    const lineas = ['Prevención Social','Prevención Comunitaria','Persecución del Delito','Atención a Víctimas','Rehabilitación'];
+    await prisma.catalogItem.createMany({ data: lineas.map((v, i) => ({ type: 'lineas', value: v, order: i })) });
+  }
+  const countEstados = await prisma.catalogItem.count({ where: { type: 'estados' } });
+  if (countEstados === 0) {
+    const estados = ['Programado','En Proceso','Completado','Cancelado'];
+    await prisma.catalogItem.createMany({ data: estados.map((v, i) => ({ type: 'estados', value: v, order: i })) });
+  }
+}
+seedCatalog().catch(() => {});
+
 // POST replace-all endpoints (protected)
 app.post('/api/eventos', authRequired, async (req, res) => {
   const parsed = ArrayOf.eventos.safeParse(req.body);

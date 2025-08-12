@@ -65,3 +65,11 @@ model Oficio {
   estado       String
   tipo         String
 }
+
+model CatalogItem {
+  id     Int    @id @default(autoincrement())
+  type   String
+  value  String
+  active Boolean @default(true)
+  order  Int?
+}

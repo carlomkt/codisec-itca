@@ -12,6 +12,7 @@ const EventosPage = lazy(() => import('./features/eventos/EventosPage'));
 const InformesPage = lazy(() => import('./features/informes/InformesPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LoginPage = lazy(() => import('./features/auth/LoginPage'));
+const CatalogPage = lazy(() => import('./features/config/CatalogPage'));
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -43,6 +44,7 @@ const App: React.FC = () => {
         <Route path="/informes" element={<Layout><InformesPage /></Layout>} />
         <Route path="/distritos" element={<Layout><DistritosPage /></Layout>} />
         <Route path="/responsables" element={<Layout><ResponsablesPage /></Layout>} />
+        <Route path="/config/catalog" element={<Layout><CatalogPage /></Layout>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

@@ -42,6 +42,8 @@ const Layout: React.FC<{ children: React.ReactNode }>= ({ children }) => {
             <NavLink to="/agenda" onClick={() => setOpen(false)}>Agenda</NavLink>
             <NavLink to="/oficios" onClick={() => setOpen(false)}>Oficios</NavLink>
             <NavLink to="/informes" onClick={() => setOpen(false)}>Informes</NavLink>
+            <div className="text-xs text-gray-500 px-3 mt-3">Configuración</div>
+            <NavLink to="/config/catalog" onClick={() => setOpen(false)}>Catálogos</NavLink>
           </div>
         </aside>
         <main className="flex-1 md:ml-0 ml-0 md:pl-0 pt-4 p-4 md:pt-4 md:p-4 w-full md:w-auto md:overflow-visible overflow-x-hidden">

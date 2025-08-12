@@ -78,10 +78,19 @@ export const OficioSchema = z.object({
   tipo: z.enum(['personalizado', 'sesiones', 'eventos', 'responsables']),
 });
 
+export const CatalogItemSchema = z.object({
+  id: z.number().int().optional(),
+  type: z.string().min(1),
+  value: z.string().min(1),
+  active: z.boolean().optional().default(true),
+  order: z.number().int().optional().nullable(),
+});
+
 export const ArrayOf = {
   eventos: z.array(EventoSchema),
   distritos: z.array(DistritoSchema),
   responsables: z.array(ResponsableSchema),
   actividadesITCA: z.array(ActividadITCASchema),
   oficios: z.array(OficioSchema),
+  catalog: z.array(CatalogItemSchema),
 };
