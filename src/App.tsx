@@ -1,6 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
 import { AgendaPage } from './features/agenda';
+
+const DistritosPage = lazy(() => import('./features/distritos/DistritosPage'));
+const ResponsablesPage = lazy(() => import('./features/responsables/ResponsablesPage'));
+const OficiosPage = lazy(() => import('./features/oficios/OficiosPage'));
 
 const PageIframe: React.FC<{ title: string; src: string }> = ({ title, src }) => {
   return (
@@ -45,20 +49,20 @@ const App: React.FC = () => {
           JSON.stringify({ id: 'seed', nombre: 'Usuario CODISEC', rol: 'admin' })
         );
       }
-    } catch (err) {
-      // ignore storage errors
-    }
+    } catch (err) {}
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/agenda" element={<AgendaPage />} />
-      <Route path="/distritos" element={<PageIframe title="Distritos" src="/codisec/distritos.html" />} />
-      <Route path="/responsables" element={<PageIframe title="Responsables" src="/codisec/responsables.html" />} />
-      <Route path="/oficios" element={<PageIframe title="Oficios" src="/codisec/oficios.html" />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <Suspense fallback={<div className="p-6">Cargando…</div>}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/agenda" element={<AgendaPage />} />
+        <Route path="/distritos" element={<DistritosPage />} />
+        <Route path="/responsables" element={<ResponsablesPage />} />
+        <Route path="/oficios" element={<OficiosPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 
