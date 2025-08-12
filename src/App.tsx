@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import { AgendaPage } from './features/agenda';
 
 const PageIframe: React.FC<{ title: string; src: string }> = ({ title, src }) => {
   return (
@@ -52,7 +53,7 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/agenda" element={<PageIframe title="Agenda" src="/codisec/agenda.html" />} />
+      <Route path="/agenda" element={<AgendaPage />} />
       <Route path="/distritos" element={<PageIframe title="Distritos" src="/codisec/distritos.html" />} />
       <Route path="/responsables" element={<PageIframe title="Responsables" src="/codisec/responsables.html" />} />
       <Route path="/oficios" element={<PageIframe title="Oficios" src="/codisec/oficios.html" />} />

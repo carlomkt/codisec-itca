@@ -11,6 +11,12 @@
     "sync:codisec": "rm -rf public/codisec && mkdir -p public/codisec && cp -r external/codisec/. public/codisec/"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.19",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
+    "chart.js": "^4.5.0",
     "html-to-docx": "^1.8.0",
     "html2pdf.js": "^0.10.3",
     "lucide-react": "^0.344.0",
