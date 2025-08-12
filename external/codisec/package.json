@@ -1,0 +1,14 @@
+
+{
+  "name": "codisec-total",
+  "version": "1.0.0",
+  "description": "Plataforma de Gestión Preventiva CODISEC",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

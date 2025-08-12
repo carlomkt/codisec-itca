@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="gestion-itca.html">Gestión ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn" role="button">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <!-- Header con logo y slogan -->
+    <div class="dashboard-header">
+      <img src="images/logo-codisec.png" alt="Logo CODISEC" class="dashboard-logo">
+      <div class="dashboard-welcome">
+        <h1>Panel de Control CODISEC</h1>
+        <p class="dashboard-slogan">"No somos solo un equipo, somos una fuerza en acción"</p>
+        <p class="user-welcome">Bienvenido/a <span id="usernameDisplay"></span> 👋</p>
+      </div>
+    </div>
+
+    <!-- KPIs Mejorados -->
+    <div class="kpi-section">
+      <h2>Indicadores Clave</h2>
+      <div class="kpi-cards">
+        <div class="kpi-card cumplimiento">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-content">
+            <h3 id="kpi-itca">0%</h3>
+            <p>Cumplimiento ITCA</p>
+          </div>
+        </div>
+        <div class="kpi-card eventos">
+          <div class="kpi-icon">📅</div>
+          <div class="kpi-content">
+            <h3 id="kpi-eventos">0</h3>
+            <p>Eventos Programados</p>
+          </div>
+        </div>
+        <div class="kpi-card pendientes">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-content">
+            <h3 id="kpi-pendientes">0</h3>
+            <p>Actividades Pendientes</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficos Mejorados -->
+    <div class="charts-section">
+      <h2>Análisis Visual</h2>
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h3>Cumplimiento ITCA</h3>
+          <canvas id="chartCumplimiento"></canvas>
+        </div>
+        <div class="chart-container">
+          <h3>Eventos por Programa</h3>
+          <canvas id="chartEventos"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

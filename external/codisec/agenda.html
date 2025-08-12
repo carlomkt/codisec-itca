@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda de Eventos - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+  <style>
+    /* Estilos para las pestañas */
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .tab-button {
+      background-color: #f1f1f1;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 10px 15px;
+      margin-right: 5px;
+      border-radius: 5px 5px 0 0;
+      transition: background-color 0.3s;
+    }
+    .tab-button:hover {
+      background-color: #ddd;
+    }
+    .tab-button.active {
+      background-color: #ccc;
+    }
+    .tab-content {
+      display: none;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-top: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .filtros {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .reportes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .reporte-card {
+      border: 1px solid #eee;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="gestion-itca.html">Gestión ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Agenda de Eventos Preventivos</h1>
+
+    <!-- Pestañas de navegación -->
+    <div class="tabs">
+      <button class="tab-button active" onclick="showTab('calendar')">Calendario</button>
+      <button class="tab-button" onclick="showTab('cumplidos')">Eventos Cumplidos</button>
+      <button class="tab-button" onclick="showTab('reportes')">Reportes</button>
+    </div>
+
+    <!-- Contenido del Calendario -->
+    <div id="calendar-tab" class="tab-content active">
+      <div id="calendar"></div>
+    </div>
+
+    <!-- Contenido de Eventos Cumplidos -->
+    <div id="cumplidos-tab" class="tab-content">
+      <h2>Historial de Eventos Cumplidos</h2>
+      <div class="filtros">
+        <label>Filtrar por mes:
+          <input type="month" id="filtroMes" onchange="filtrarEventos()">
+        </label>
+        <label>Filtrar por responsable:
+          <select id="filtroResponsable" onchange="filtrarEventos()">
+            <option value="">Todos</option>
+            <!-- Opciones de responsables se cargarán aquí dinámicamente -->
+          </select>
+        </label>
+        <label>Mostrar:
+          <select id="filtroEstado" onchange="filtrarEventos()">
+            <option value="Realizado">Solo Cumplidos</option>
+            <option value="todos">Todos los Estados</option>
+          </select>
+        </label>
+      </div>
+      <div id="eventosCumplidos">
+        <p>Cargando eventos cumplidos...</p>
+      </div>
+    </div>
+
+    <!-- Contenido de Reportes -->
+    <div id="reportes-tab" class="tab-content">
+      <h2>Reportes de Gestión</h2>
+      <div class="reportes-grid">
+        <div class="reporte-card">
+          <h3>Eventos por Estado</h3>
+          <canvas id="chartEstados"></canvas>
+        </div>
+        <div class="reporte-card">
+          <h3>Eventos por Mes</h3>
+          <canvas id="chartMensual"></canvas>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <dialog id="eventModal">
+    <form method="dialog" id="eventForm" class="form-modal">
+      <h2 id="modalTitle">Nuevo Evento</h2>
+      <label>Fecha:
+        <input type="date" id="fecha" required>
+      </label>
+      <label>Hora:
+        <input type="time" id="hora" required>
+      </label>
+      <label>Duración (min):
+        <input type="number" id="duracion" required>
+      </label>
+      <label>Actividad:
+        <input type="text" id="actividad" required>
+      </label>
+      <label>Tema:
+        <input type="text" id="tema" required>
+      </label>
+      <label>Aliado:
+        <input type="text" id="aliado" required>
+      </label>
+      <label>Institución:
+        <input type="text" id="institucion" required>
+      </label>
+      <label>Público:
+        <input type="text" id="publico" required>
+      </label>
+      <label>Responsable:
+        <input type="text" id="responsable" required>
+      </label>
+      <label>Observaciones:
+        <textarea id="observaciones"></textarea>
+      </label>
+      <label>Estado:
+        <select id="estado" required onchange="toggleStatusFields()">
+          <option value="Confirmado">Confirmado</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Realizado">Realizado</option>
+          <option value="Postergado">Postergado</option>
+          <option value="Cancelado">Cancelado</option>
+        </select>
+      </label>
+
+      <!-- Campos adicionales según estado -->
+      <div id="camposPostergado" style="display:none;">
+        <label>Nueva Fecha:
+          <input type="date" id="nuevaFecha">
+        </label>
+        <label>Nueva Hora:
+          <input type="time" id="nuevaHora">
+        </label>
+        <label>Motivo Postergación:
+          <textarea id="motivoPostergacion" placeholder="Explique el motivo de la postergación"></textarea>
+        </label>
+      </div>
+
+      <div id="camposCancelado" style="display:none;">
+        <label>Motivo Cancelación:
+          <select id="motivoCancelacion">
+            <option value="">Seleccione motivo</option>
+            <option value="Por Aliado">Por Aliado</option>
+            <option value="Por Institución">Por Institución</option>
+            <option value="Falta de Recursos">Falta de Recursos</option>
+            <option value="Condiciones Climáticas">Condiciones Climáticas</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </label>
+        <label>Detalle Cancelación:
+          <textarea id="detalleCancelacion" placeholder="Proporcione detalles adicionales"></textarea>
+        </label>
+      </div>
+
+      <div id="camposRealizado" style="display:none;">
+        <label>Evidencias del Evento:
+          <input type="file" id="evidencias" multiple accept="image/*,.pdf,.doc,.docx">
+          <small>Puede subir fotos, oficios y documentos</small>
+        </label>
+        <label>Asistentes:
+          <input type="number" id="asistentes" placeholder="Número de asistentes">
+        </label>
+        <label>Evaluación del Evento:
+          <select id="evaluacion">
+            <option value="">Seleccione evaluación</option>
+            <option value="Excelente">Excelente</option>
+            <option value="Bueno">Bueno</option>
+            <option value="Regular">Regular</option>
+            <option value="Deficiente">Deficiente</option>
+          </select>
+        </label>
+        <label>Logros Alcanzados:
+          <textarea id="logros" placeholder="Describa los principales logros del evento"></textarea>
+        </label>
+      </div>
+
+      <menu>
+        <button value="cancel">Cancelar</button>
+        <button id="saveEventBtn" value="default">Guardar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="js/agenda.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Script para manejar la visibilidad de campos según el estado del evento
+    function toggleStatusFields() {
+      const estado = document.getElementById('estado').value;
+      document.getElementById('camposPostergado').style.display = 'none';
+      document.getElementById('camposCancelado').style.display = 'none';
+      document.getElementById('camposRealizado').style.display = 'none';
+
+      if (estado === 'Postergado') {
+        document.getElementById('camposPostergado').style.display = 'block';
+      } else if (estado === 'Cancelado') {
+        document.getElementById('camposCancelado').style.display = 'block';
+      } else if (estado === 'Realizado') {
+        document.getElementById('camposRealizado').style.display = 'block';
+      }
+    }
+
+    // Script para el cambio de pestañas
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.getElementById(tabId + '-tab').classList.add('active');
+
+      document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+      });
+      document.querySelector(`.tab-button[onclick="showTab('${tabId}')"]`).classList.add('active');
+    }
+
+    // Placeholder para la función de filtrar eventos
+    function filtrarEventos() {
+      console.log('Filtrando eventos...');
+      // Implementar lógica de filtrado aquí
+    }
+
+    // Placeholder para la inicialización de gráficos
+    function inicializarGraficos() {
+      // Lógica para inicializar Chart.js
+      const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+      const chartEstados = new Chart(ctxEstados, {
+        type: 'pie',
+        data: {
+          labels: ['Confirmado', 'Pendiente', 'Realizado', 'Postergado', 'Cancelado'],
+          datasets: [{
+            label: 'Eventos por Estado',
+            data: [10, 5, 8, 2, 3], // Datos de ejemplo
+            backgroundColor: [
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 206, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(255, 99, 132, 0.6)'
+            ],
+            borderColor: [
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 206, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(255, 99, 132, 1)'
+            ],
+            borderWidth: 1
+          }]
+        }
+      });
+
+      const ctxMensual = document.getElementById('chartMensual').getContext('2d');
+      const chartMensual = new Chart(ctxMensual, {
+        type: 'bar',
+        data: {
+          labels: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio'],
+          datasets: [{
+            label: 'Eventos por Mes',
+            data: [12, 19, 3, 5, 2, 3], // Datos de ejemplo
+            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Llamar a las funciones de inicialización al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicialización del calendario (esto debería estar en agenda.js)
+      var calendarEl = document.getElementById('calendar');
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es', // Idioma español
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        events: '/api/eventos', // Endpoint para obtener eventos
+        eventClick: function(info) {
+          // Lógica para abrir el modal con la información del evento
+          console.log('Evento clickeado:', info.event.id);
+          alert('Click en el evento: ' + info.event.title);
+          // Aquí deberías cargar los datos del evento en el modal
+        },
+        dateClick: function(info) {
+          // Lógica para abrir el modal para crear un nuevo evento
+          console.log('Click en fecha:', info.dateStr);
+          document.getElementById('modalTitle').innerText = 'Nuevo Evento';
+          document.getElementById('eventForm').reset(); // Limpiar formulario
+          // Llenar campos de fecha y hora si es necesario
+          document.getElementById('fecha').value = info.dateStr;
+          // Abrir el modal
+          document.getElementById('eventModal').showModal();
+        }
+      });
+      calendar.render();
+
+      // Inicializar pestañas y gráficos
+      inicializarGraficos();
+
+      // Cargar responsables para el filtro (ejemplo)
+      const responsables = ['Juan Pérez', 'María García', 'Carlos López'];
+      const filtroResponsableSelect = document.getElementById('filtroResponsable');
+      responsables.forEach(resp => {
+        const option = document.createElement('option');
+        option.value = resp;
+        option.text = resp;
+        filtroResponsableSelect.appendChild(option);
+      });
+    });
+  </script>
+</body>
+</html>

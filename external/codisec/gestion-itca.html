@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión Actividades ITCA - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <nav class="container-fluid">
+    <ul>
+      <li><strong>CODISEC</strong></li>
+    </ul>
+    <ul>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="agenda.html">Agenda</a></li>
+      <li><a href="actividades.html">ITCA</a></li>
+      <li><a href="gestion-itca.html">Gestión ITCA</a></li>
+      <li><a href="oficios.html">Oficios</a></li>
+      <li><a href="informes.html">Informes</a></li>
+      <li><a href="distritos.html">Distritos</a></li>
+      <li><a href="responsables.html">Responsables</a></li>
+      <li><a href="#" id="logoutBtn" role="button">Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+  <main class="container">
+    <h1>Gestión de Actividades ITCA</h1>
+    <p>Administra las actividades programadas y ejecutadas para el cumplimiento del ITCA.</p>
+
+    <div style="margin-bottom: 1.5rem;">
+      <button id="nuevaActividadBtn">Nueva Actividad</button>
+      <button onclick="sincronizarConITCA()">Sincronizar con ITCA</button>
+      <button onclick="exportarDatos()">Exportar Datos</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Línea Estratégica</th>
+          <th>Actividad</th>
+          <th>Responsable</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="actividadesTableBody">
+      </tbody>
+    </table>
+
+    <!-- Modal para nueva/editar actividad -->
+    <dialog id="actividadModal" class="form-modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Nueva Actividad ITCA</h2>
+      </div>
+      <form id="actividadForm">
+        <label>
+          Línea Estratégica:
+          <select id="lineaEstrategica" required>
+            <option value="">Seleccionar línea</option>
+            <option value="Seguridad Ciudadana">Seguridad Ciudadana</option>
+            <option value="Prevención de Violencia Familiar">Prevención de Violencia Familiar</option>
+            <option value="Prevención de Consumo de Drogas">Prevención de Consumo de Drogas</option>
+            <option value="Seguridad Vial">Seguridad Vial</option>
+            <option value="Defensa Civil">Defensa Civil</option>
+            <option value="Participación Ciudadana">Participación Ciudadana</option>
+          </select>
+        </label>
+
+        <label>
+          Actividad:
+          <input type="text" id="actividad" required placeholder="Nombre de la actividad">
+        </label>
+
+        <label>
+          Descripción:
+          <textarea id="descripcion" placeholder="Descripción detallada de la actividad"></textarea>
+        </label>
+
+        <label>
+          Responsable:
+          <select id="responsableSelect">
+            <option value="">Sin asignar</option>
+          </select>
+        </label>
+
+        <label>
+          Fecha Límite:
+          <input type="date" id="fechaLimite" required>
+        </label>
+
+        <label>
+          Meta Programada:
+          <input type="number" id="metaProgramada" min="1" value="1" required>
+        </label>
+
+        <label>
+          Estado:
+          <select id="estadoActividad">
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Progreso">En Progreso</option>
+            <option value="Completada">Completada</option>
+            <option value="Cancelada">Cancelada</option>
+          </select>
+        </label>
+
+        <div class="modal-actions">
+          <button type="button" onclick="document.getElementById('actividadModal').close()">Cancelar</button>
+          <button type="submit" id="saveActividadBtn">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+
+  <script src="js/gestion-itca.js"></script>
+</body>
+</html>

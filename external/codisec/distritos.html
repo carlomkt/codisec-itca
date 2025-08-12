@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Módulo de Distritos - CODISEC</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<nav class="container-fluid">
+  <ul>
+    <li><strong>CODISEC</strong></li>
+  </ul>
+  <ul>
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="agenda.html">Agenda</a></li>
+    <li><a href="actividades.html">ITCA</a></li>
+    <li><a href="oficios.html">Oficios</a></li>
+    <li><a href="informes.html">Informes</a></li>
+    <li><a href="distritos.html" class="active">Distritos</a></li>
+    <li><a href="responsables.html">Responsables</a></li>
+    <li><a href="#" id="logoutBtn">Cerrar sesión</a></li>
+  </ul>
+</nav>
+
+<main class="container">
+  <h1 style="color: var(--codisec-blue); margin-bottom: 1.5rem; font-size: 2rem;">Gestión de Distritos</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <button id="btnNuevoDistrito" class="btn-primary">+ Nuevo Distrito</button>
+    <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+      <label for="filtroDistrito" style="font-weight: 500; color: var(--codisec-blue);">Filtrar por nombre:</label>
+      <input type="text" id="filtroDistrito" placeholder="Escriba para filtrar..." style="min-width: 250px;" />
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Responsable</th>
+        <th>Actividades</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaDistritos">
+      <!-- Cargado desde distritos.js -->
+    </tbody>
+  </table>
+</main>
+
+<!-- Modal -->
+<dialog id="modalDistrito">
+  <article>
+    <header>
+      <h3 id="modalTitulo">Nuevo Distrito</h3>
+    </header>
+    <form id="formDistrito">
+      <label>Nombre
+        <input type="text" id="nombreDistrito" required />
+      </label>
+      <label>Responsable
+        <input type="text" id="responsableDistrito" required />
+      </label>
+      <label>Actividades
+        <textarea id="actividadesDistrito" rows="3"></textarea>
+      </label>
+      <label>Estado
+        <select id="estadoDistrito" required>
+          <option value="">Seleccione...</option>
+          <option value="Activo">Activo</option>
+          <option value="Inactivo">Inactivo</option>
+        </select>
+      </label>
+      <footer>
+        <button type="submit">Guardar</button>
+        <button type="button" id="btnCancelar">Cancelar</button>
+      </footer>
+    </form>
+  </article>
+</dialog>
+
+<script src="js/distritos.js"></script>
+</body>
+</html>
