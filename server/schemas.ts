@@ -9,7 +9,6 @@ export const EventoExtendidoSchema = z.object({
   responsable: z.string().optional().default(''),
   observaciones: z.string().optional().default(''),
   estado: z.enum(['Confirmado', 'Pendiente', 'Realizado', 'Postergado', 'Cancelado']),
-<<<<<<< HEAD
   nuevaFecha: z.string().optional(),
   nuevaHora: z.string().optional(),
   motivoPostergacion: z.string().optional(),
@@ -19,26 +18,16 @@ export const EventoExtendidoSchema = z.object({
   evaluacion: z.string().optional(),
   logros: z.string().optional(),
   evidencias: z.array(z.string()).optional(),
-=======
-  asistentes: z.number().int().optional(),
-  evaluacion: z.string().optional(),
-  logros: z.string().optional(),
-  evidencias: z.array(z.any()).optional(),
   nivelEducativo: z.string().optional(),
   turno: z.string().optional(),
   gradoSeccion: z.string().optional(),
   direccion: z.string().optional(),
->>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
 });
 
 export const EventoSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
-<<<<<<< HEAD
   start: z.string().min(1), // ISO string
-=======
-  start: z.string().min(1),
->>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
   extendedProps: EventoExtendidoSchema,
 });
 
@@ -47,11 +36,7 @@ export const DistritoSchema = z.object({
   nombre: z.string().min(1),
   responsable: z.string().min(1),
   actividades: z.string().default(''),
-<<<<<<< HEAD
   estado: z.enum(['Activo', 'Inactivo']),
-=======
-  estado: z.string().min(1),
->>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
 });
 
 export const ResponsableSchema = z.object({
@@ -93,13 +78,8 @@ export const OficioSchema = z.object({
   destinatario: z.string().min(1),
   asunto: z.string().min(1),
   contenido: z.string().min(1),
-<<<<<<< HEAD
   estado: z.enum(['Borrador', 'Enviado']),
   tipo: z.enum(['personalizado', 'sesiones', 'eventos', 'responsables']),
-=======
-  estado: z.string().min(1),
-  tipo: z.string().min(1),
->>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
 });
 
 export const CatalogItemSchema = z.object({
@@ -117,8 +97,4 @@ export const ArrayOf = {
   actividadesITCA: z.array(ActividadITCASchema),
   oficios: z.array(OficioSchema),
   catalog: z.array(CatalogItemSchema),
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
