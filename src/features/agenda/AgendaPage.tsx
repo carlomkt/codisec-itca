@@ -136,7 +136,7 @@ const AgendaPage: React.FC = () => {
       fecha, hora,
       actividad: e.title.split(' - ')[0] || e.title,
       tema: xp.tema || '', aliado: xp.aliado || '', institucion: xp.institucion || '', publico: xp.publico || '', responsable: xp.responsable || '', observaciones: xp.observaciones || '', estado: xp.estado || 'Confirmado', duracion: xp.duracion || 60,
-      asistentes: xp.asistentes || undefined, nivelEducativo: xp.nivelEducativo || '', turno: xp.turno || '', gradoSeccion: xp.gradoSeccion || '', direccion: xp.direccion || '',
+      asistentes: xp.asistentes || undefined, nivelEducativo: xp.nivelEducativo, turno: xp.turno, gradoSeccion: xp.gradoSeccion, direccion: xp.direccion,
     });
     setErrors({}); setModalOpen(true);
   }, [events]);

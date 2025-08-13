@@ -5,13 +5,13 @@ const NavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () =>
   const { pathname } = useLocation();
   const active = pathname === to;
   return (
-    <Link to={to} onClick={onClick} className={`block px-3 py-2 rounded hover:bg-blue-50 ${active ? 'text-blue-700 font-semibold bg-blue-100' : 'text-gray-100 md:text-gray-700'}`}>
+    <Link to={to} onClick={onClick} className={`block px-3 py-2 rounded hover:bg-blue-50 ${active ? 'text-blue-700 font-semibold bg-blue-100' : 'text-gray-700'}`}>
       {children}
     </Link>
   );
 };
 
-const Layout: React.FC<{ children: React.ReactNode }>= ({ children }) => {
+const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [open, setOpen] = useState(false);
   const user = (() => { try { return JSON.parse(localStorage.getItem('codisecUser') || '{}'); } catch { return {}; } })() as any;
   const isAdmin = (user?.rol || 'admin') === 'admin';
@@ -22,7 +22,15 @@ const Layout: React.FC<{ children: React.ReactNode }>= ({ children }) => {
           <img src="/images/logo.png" alt="CODISEC" className="h-8 w-auto" />
           <span className="font-semibold">CODISEC Chorrillos</span>
         </div>
-        <button className="md:hidden px-3 py-2 rounded bg-[color:var(--codisec-accent)]" onClick={() => setOpen(!open)}>Menú</button>
+        <button className="md:hidden p-2 rounded-md inline-flex items-center justify-center text-white hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" onClick={() => setOpen(!open)}>
+          <span className="sr-only">Open main menu</span>
+          <svg className={`${open ? 'hidden' : 'block'} h-6 w-6`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg className={`${open ? 'block' : 'hidden'} h-6 w-6`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <nav className="hidden md:flex items-center gap-4 text-sm">
           <Link to="/" className="hover:underline">Dashboard</Link>
           <Link to="/agenda" className="hover:underline">Agenda</Link>
@@ -46,6 +54,7 @@ const Layout: React.FC<{ children: React.ReactNode }>= ({ children }) => {
             <NavLink to="/informes" onClick={() => setOpen(false)}>Informes</NavLink>
             <hr className="my-3 border-gray-200" />
             {isAdmin && <NavLink to="/config/catalog" onClick={() => setOpen(false)}>⚙️ Catálogos</NavLink>}
+            {isAdmin && <NavLink to="/users" onClick={() => setOpen(false)}>👥 Usuarios</NavLink>}
           </div>
         </aside>
         <main className="flex-1 md:ml-0 ml-0 md:pl-0 pt-4 p-4 md:pt-4 md:p-4 w-full md:w-auto md:overflow-visible overflow-x-hidden">

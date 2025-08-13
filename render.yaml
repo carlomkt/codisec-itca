@@ -3,8 +3,13 @@ services:
     name: codisec-api
     env: node
     plan: free
+<<<<<<< HEAD
     buildCommand: npm ci && npm run build:server
     startCommand: node dist-server/server/index.js
+=======
+    buildCommand: npm install --no-audit --no-fund && npm run build:server
+startCommand: node dist-server/server/index.js
+>>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -18,4 +23,8 @@ services:
 
 databases:
   - name: codisec-db
+<<<<<<< HEAD
     plan: free
+=======
+    plan: free
+>>>>>>> 0ffacbf441f264809a2ef46037d84ca7ef9d054f

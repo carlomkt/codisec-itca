@@ -27,3 +27,7 @@
   .tab-button { @apply bg-transparent border-0 px-4 py-2 cursor-pointer border-b-2 border-transparent text-[color:var(--codisec-gray-dark)]; }
   .tab-button.active { @apply border-[color:var(--codisec-accent)] font-medium; }
 }
+
+html, body, #root {
+  height: 100%;
+}

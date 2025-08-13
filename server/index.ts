@@ -8,13 +8,15 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import XLSX from 'xlsx';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 const prisma = new PrismaClient();
 
 const app = express();
-const PORT = process.env.PORT || 5175;
+const PORT = Number(process.env.PORT || 5175);
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
 
@@ -27,29 +29,78 @@ function authRequired(req: express.Request, res: express.Response, next: express
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET) as { role: string };
+    (req as any).user = decoded;
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid token' });
   }
 }
 
-app.get('/api/dev-token', (_req, res) => {
-  if (process.env.NODE_ENV === 'production') return res.status(404).end();
-  const token = signToken({ sub: 'dev-user', role: 'admin' });
-  res.json({ token });
+function adminRequired(req: express.Request, res: express.Response, next: express.NextFunction) {
+    const user = (req as any).user;
+    if (user && user.role === 'ADMIN') {
+        return next();
+    }
+    return res.status(403).json({ error: 'Forbidden' });
+}
+
+app.post('/api/register', async (req, res) => {
+    const { username, password, role } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await prisma.user.create({
+            data: {
+                username,
+                password: hashedPassword,
+                role: role || 'USER',
+            },
+        });
+        res.status(201).json({ id: user.id, username: user.username, role: user.role });
+    } catch (error) {
+        res.status(400).json({ error: 'User already exists' });
+    }
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { username, password } = req.body || {};
-  const DEV_USER = process.env.DEV_USER || 'admin';
-  const DEV_PASS = process.env.DEV_PASS || 'admin';
-  if (username === DEV_USER && password === DEV_PASS) {
-    const token = signToken({ sub: username, role: 'admin' });
+  const user = await prisma.user.findUnique({ where: { username } });
+
+  if (user && (await bcrypt.compare(password, user.password))) {
+    const token = signToken({ sub: user.id, role: user.role });
     return res.json({ token });
   }
+
   return res.status(401).json({ error: 'Credenciales inválidas' });
 });
+
+// User management endpoints
+app.get('/api/users', authRequired, adminRequired, async (req, res) => {
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            username: true,
+            role: true,
+            createdAt: true,
+        },
+    });
+    res.json(users);
+});
+
+app.delete('/api/users/:id', authRequired, adminRequired, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await prisma.user.delete({ where: { id: Number(id) } });
+        res.status(204).send();
+    } catch (error) {
+        res.status(400).json({ error: 'User not found' });
+    }
+});
+
 
 // Static serving for uploads
 const uploadRoot = path.join(process.cwd(), 'uploads');
@@ -68,13 +119,19 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// Upload evidencias
 app.post('/api/itca/upload', authRequired, upload.array('files', 10), (req, res) => {
   const files = (req.files as Express.Multer.File[]) || [];
-  const mapped = files.map(f => ({ name: f.originalname, url: `/uploads/itca/${path.basename(f.path)}`, size: f.size, type: f.mimetype }));
+  const mapped = files.map(f => ({
+    name: f.originalname,
+    url: `/uploads/itca/${path.basename(f.path)}`,
+    size: f.size,
+    type: f.mimetype,
+  }));
   res.json({ files: mapped });
 });
 
-// Import ITCA from Excel
+// Importar Excel ITCA
 app.post('/api/itca/import', authRequired, (req, res) => {
   const { workbookBase64 } = req.body || {};
   if (!workbookBase64) return res.status(400).json({ error: 'workbookBase64 requerido' });
@@ -86,25 +143,48 @@ app.post('/api/itca/import', authRequired, (req, res) => {
     const ws = wb.Sheets[wsName];
     const rows = XLSX.utils.sheet_to_json(ws);
     res.json({ rows });
-  } catch (e) {
+  } catch {
     res.status(400).json({ error: 'No se pudo leer el Excel' });
   }
 });
 
-// GET endpoints
+// GETs
 app.get('/api/eventos', async (_req, res) => {
   const data = await prisma.event.findMany();
-  res.json(data.map(e => ({ id: e.id, title: e.title, start: e.start.toISOString(), extendedProps: e.extendedProps })));
+  res.json(data.map(e => ({
+    id: e.id,
+    title: e.title,
+    start: e.start.toISOString(),
+    extendedProps: e.extendedProps,
+  })));
 });
 
-app.get('/api/distritos', async (_req, res) => { const data = await prisma.distrito.findMany(); res.json(data); });
-app.get('/api/responsables', async (_req, res) => { const data = await prisma.responsable.findMany(); res.json(data); });
+app.get('/api/distritos', async (_req, res) => {
+  const data = await prisma.distrito.findMany();
+  res.json(data);
+});
+
+app.get('/api/responsables', async (_req, res) => {
+  const data = await prisma.responsable.findMany();
+  res.json(data);
+});
+
 app.get('/api/actividadesITCA', async (_req, res) => {
-  const data = await prisma.actividadITCA.findMany(); res.json(data.map(a => ({ ...a, fecha: a.fecha.toISOString(), fechaProgramada: a.fechaProgramada?.toISOString() ?? undefined, fechaEjecucion: a.fechaEjecucion?.toISOString() ?? undefined })));
+  const data = await prisma.actividadITCA.findMany();
+  res.json(data.map(a => ({
+    ...a,
+    fecha: a.fecha.toISOString(),
+    fechaProgramada: a.fechaProgramada?.toISOString() ?? undefined,
+    fechaEjecucion: a.fechaEjecucion?.toISOString() ?? undefined,
+  })));
 });
-app.get('/api/oficios', async (_req, res) => { const data = await prisma.oficio.findMany(); res.json(data.map(o => ({ ...o, fecha: o.fecha.toISOString() }))); });
 
-// Catalog endpoints
+app.get('/api/oficios', async (_req, res) => {
+  const data = await prisma.oficio.findMany();
+  res.json(data.map(o => ({ ...o, fecha: o.fecha.toISOString() })));
+});
+
+// Catálogos
 app.get('/api/catalog/:type', async (req, res) => {
   const type = String(req.params.type);
   const data = await prisma.catalogItem.findMany({ where: { type, active: true }, orderBy: [{ order: 'asc' }] });
@@ -122,53 +202,20 @@ app.post('/api/catalog/:type', authRequired, async (req, res) => {
   res.json({ ok: true });
 });
 
-// simple seed
-async function seedCatalog() {
-  const countLineas = await prisma.catalogItem.count({ where: { type: 'lineas' } });
-  if (countLineas === 0) {
-    const lineas = ['Prevención Social','Prevención Comunitaria','Persecución del Delito','Atención a Víctimas','Rehabilitación'];
-    await prisma.catalogItem.createMany({ data: lineas.map((v, i) => ({ type: 'lineas', value: v, order: i })) });
-  }
-  const countEstados = await prisma.catalogItem.count({ where: { type: 'estados' } });
-  if (countEstados === 0) {
-    const estados = ['Confirmado','Pendiente','Realizado','Postergado','Cancelado'];
-    await prisma.catalogItem.createMany({ data: estados.map((v, i) => ({ type: 'estados', value: v, order: i })) });
-  }
-  const countPublicos = await prisma.catalogItem.count({ where: { type: 'publicos' } });
-  if (countPublicos === 0) {
-    const publicos = ['Estudiantes','Docentes','Padres','Comunidad'];
-    await prisma.catalogItem.createMany({ data: publicos.map((v, i) => ({ type: 'publicos', value: v, order: i })) });
-  }
-  const countNiveles = await prisma.catalogItem.count({ where: { type: 'niveles' } });
-  if (countNiveles === 0) {
-    const niveles = ['Inicial','Primaria','Secundaria','Superior'];
-    await prisma.catalogItem.createMany({ data: niveles.map((v, i) => ({ type: 'niveles', value: v, order: i })) });
-  }
-  const countTurnos = await prisma.catalogItem.count({ where: { type: 'turnos' } });
-  if (countTurnos === 0) {
-    const turnos = ['Mañana','Tarde','Noche'];
-    await prisma.catalogItem.createMany({ data: turnos.map((v, i) => ({ type: 'turnos', value: v, order: i })) });
-  }
-  const countIE = await prisma.catalogItem.count({ where: { type: 'ie' } });
-  if (countIE === 0) {
-    const ies = ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen'];
-    await prisma.catalogItem.createMany({ data: ies.map((v, i) => ({ type: 'ie', value: v, order: i })) });
-  }
-  const countDistritos = await prisma.catalogItem.count({ where: { type: 'distritos' } });
-  if (countDistritos === 0) {
-    const dists = ['Chorrillos Centro','Matellini','San Juan Bautista','San Pedro'];
-    await prisma.catalogItem.createMany({ data: dists.map((v, i) => ({ type: 'distritos', value: v, order: i })) });
-  }
-}
-seedCatalog().catch(() => {});
-
-// POST replace-all endpoints (protected)
+// POST replace-all (con validación Zod)
 app.post('/api/eventos', authRequired, async (req, res) => {
   const parsed = ArrayOf.eventos.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   await prisma.$transaction([
     prisma.event.deleteMany(),
-    prisma.event.createMany({ data: parsed.data.map(e => ({ id: e.id, title: e.title, start: new Date(e.start), extendedProps: e.extendedProps as any })) }),
+    prisma.event.createMany({
+      data: parsed.data.map(e => ({
+        id: e.id,
+        title: e.title,
+        start: new Date(e.start),
+        extendedProps: e.extendedProps as any,
+      })),
+    }),
   ]);
   res.json({ ok: true });
 });
@@ -176,14 +223,20 @@ app.post('/api/eventos', authRequired, async (req, res) => {
 app.post('/api/distritos', authRequired, async (req, res) => {
   const parsed = ArrayOf.distritos.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  await prisma.$transaction([ prisma.distrito.deleteMany(), prisma.distrito.createMany({ data: parsed.data }) ]);
+  await prisma.$transaction([
+    prisma.distrito.deleteMany(),
+    prisma.distrito.createMany({ data: parsed.data }),
+  ]);
   res.json({ ok: true });
 });
 
 app.post('/api/responsables', authRequired, async (req, res) => {
   const parsed = ArrayOf.responsables.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  await prisma.$transaction([ prisma.responsable.deleteMany(), prisma.responsable.createMany({ data: parsed.data }) ]);
+  await prisma.$transaction([
+    prisma.responsable.deleteMany(),
+    prisma.responsable.createMany({ data: parsed.data }),
+  ]);
   res.json({ ok: true });
 });
 
@@ -192,7 +245,14 @@ app.post('/api/actividadesITCA', authRequired, async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   await prisma.$transaction([
     prisma.actividadITCA.deleteMany(),
-    prisma.actividadITCA.createMany({ data: parsed.data.map(a => ({ ...a, fecha: new Date(a.fecha), fechaProgramada: a.fechaProgramada ? new Date(a.fechaProgramada) : null, fechaEjecucion: a.fechaEjecucion ? new Date(a.fechaEjecucion) : null })) }),
+    prisma.actividadITCA.createMany({
+      data: parsed.data.map(a => ({
+        ...a,
+        fecha: new Date(a.fecha),
+        fechaProgramada: a.fechaProgramada ? new Date(a.fechaProgramada) : null,
+        fechaEjecucion: a.fechaEjecucion ? new Date(a.fechaEjecucion) : null,
+      })),
+    }),
   ]);
   res.json({ ok: true });
 });
@@ -200,10 +260,31 @@ app.post('/api/actividadesITCA', authRequired, async (req, res) => {
 app.post('/api/oficios', authRequired, async (req, res) => {
   const parsed = ArrayOf.oficios.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
-  await prisma.$transaction([ prisma.oficio.deleteMany(), prisma.oficio.createMany({ data: parsed.data.map(o => ({ ...o, fecha: new Date(o.fecha) })) }) ]);
+  await prisma.$transaction([
+    prisma.oficio.deleteMany(),
+    prisma.oficio.createMany({ data: parsed.data.map(o => ({ ...o, fecha: new Date(o.fecha) })) }),
+  ]);
   res.json({ ok: true });
 });
 
+// Seed de catálogos iniciales
+async function seedCatalog() {
+  async function ensure(type: string, values: string[]) {
+    const count = await prisma.catalogItem.count({ where: { type } });
+    if (count === 0) {
+      await prisma.catalogItem.createMany({ data: values.map((v, i) => ({ type, value: v, order: i })) });
+    }
+  }
+  await ensure('lineas', ['Prevención Social','Prevención Comunitaria','Persecución del Delito','Atención a Víctimas','Rehabilitación']);
+  await ensure('estados', ['Confirmado','Pendiente','Realizado','Postergado','Cancelado']);
+  await ensure('publicos', ['Estudiantes','Docentes','Padres','Comunidad']);
+  await ensure('niveles', ['Inicial','Primaria','Secundaria','Superior']);
+  await ensure('turnos', ['Mañana','Tarde','Noche']);
+  await ensure('ie', ['I.E. San Juan','I.E. Villa Chorrillos','I.E. Virgen del Carmen']);
+  await ensure('distritos', ['Chorrillos Centro','Matellini','San Juan Bautista','San Pedro']);
+}
+seedCatalog().catch(() => {});
+
 app.listen(PORT, () => {
-  console.log(`API listening on http://localhost:${PORT}`);
+  console.log(`API listening on http://0.0.0.0:${PORT}`);
 });

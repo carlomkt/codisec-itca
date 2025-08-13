@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -33,27 +33,26 @@ model Responsable {
 }
 
 model ActividadITCA {
-  id               Int      @id
-  lineaEstrategica String
-  actividad        String
-  responsable      String
-  fecha            DateTime
-  // Campos extendidos ITCA
-  objetivo         String?
-  meta             String?
-  indicador        String?
-  producto         String?
-  aliados          String?
-  recursos         String?
-  fechaProgramada  DateTime?
-  fechaEjecucion   DateTime?
-  estado           String   @default("Programado")
-  observaciones    String?
-  distrito         String?
+  id                Int       @id
+  lineaEstrategica  String
+  actividad         String
+  responsable       String
+  fecha             DateTime
+  objetivo          String?
+  meta              String?
+  indicador         String?
+  producto          String?
+  aliados           String?
+  recursos          String?
+  fechaProgramada   DateTime?
+  fechaEjecucion    DateTime?
+  estado            String    @default("Programado")
+  observaciones     String?
+  distrito          String?
   poblacionObjetivo String?
-  ubicacion        String?
-  evidencias       Json?
-  trimestre        String?
+  ubicacion         String?
+  evidencias        Json?
+  trimestre         String?
 }
 
 model Oficio {
@@ -72,4 +71,45 @@ model CatalogItem {
   value  String
   active Boolean @default(true)
   order  Int?
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  roles     UserRole[]
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // e.g., page:agenda, page:eventos
+  description String?
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id])
+  role   Role @relation(fields: [roleId], references: [id])
+
+  @@id([userId, roleId])
 }
