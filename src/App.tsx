@@ -16,7 +16,7 @@ const Dashboard = () => (
   </div>
 );
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <Suspense fallback={<div style={{ padding: 16 }}>Cargando…</div>}>
       <Routes>
@@ -32,6 +32,4 @@ const App: React.FC = () => {
       </Routes>
     </Suspense>
   );
-};
-
-export default App;
+}
