@@ -11,7 +11,7 @@ const NavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () =>
   );
 };
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,12 +46,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <NavLink to="/config/catalog" onClick={() => setOpen(false)}>⚙️ Catálogos</NavLink>
           </div>
         </aside>
-        <main className="flex-1 md:ml-0 ml-0 p-4 w-full">
+        <main className="flex-1 p-4 w-full">
           {children}
         </main>
       </div>
     </div>
   );
-};
-
-export default Layout;
+}
