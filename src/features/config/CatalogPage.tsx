@@ -21,10 +21,20 @@ const CatalogPage: React.FC = () => {
   useEffect(() => { load(); }, [type]);
 
   async function load() {
-    const res = await fetch(`/api/catalog/${type}`);
-    const data = await res.json();
-    setItems(data);
-    setDirty(false);
+    try {
+      const res = await fetch(`/api/catalog/${type}`, { headers: authHeaders() });
+      if (!res.ok) {
+        console.error('Failed to load catalog data:', res.status, res.statusText);
+        setItems([]);
+        return;
+      }
+      const data = await res.json();
+      setItems(Array.isArray(data) ? data : []);
+      setDirty(false);
+    } catch (error) {
+      console.error('Error loading catalog data:', error);
+      setItems([]);
+    }
   }
 
   function add() { setItems(prev => [...prev, { value: '', active: true }]); setDirty(true); }

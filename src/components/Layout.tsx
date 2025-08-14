@@ -81,7 +81,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
         </aside>
         {open && <div className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden" onClick={() => setOpen(false)}></div>}
-        <main className="flex-1 md:ml-0 ml-0 md:pl-0 pt-4 p-4 md:pt-4 md:p-4 w-full md:w-auto md:overflow-visible overflow-x-hidden">
+        <main className="flex-1 p-4 overflow-x-auto">
           {children}
         </main>
       </div>

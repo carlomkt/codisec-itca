@@ -57,7 +57,7 @@ export function apiFetch(path: string, init?: RequestInit) {
 
 export async function loadCatalogValues(type: string, defaultValues: string[]): Promise<string[]> {
   try {
-    const res = await fetch(withBase(`/api/catalog/${type}`));
+    const res = await apiFetch(`/api/catalog/${type}`);
     if (!res.ok) throw new Error('no api');
     const data = await res.json();
     if (Array.isArray(data)) return data.map((x: any) => String(x.value));

@@ -65,8 +65,8 @@ const ResponsablesPage: React.FC = () => {
     return () => { mounted = false; };
   }, []);
 
-  useEffect(() => { write(STORAGE_RESP, responsables); postJSON('/api/responsables', responsables, STORAGE_RESP); }, [responsables]);
-  useEffect(() => { write(STORAGE_ITCA, actividades); postJSON('/api/actividadesITCA', actividades, STORAGE_ITCA); }, [actividades]);
+  // useEffect(() => { write(STORAGE_RESP, responsables); postJSON('/api/responsables', responsables, STORAGE_RESP); }, [responsables]);
+  // useEffect(() => { write(STORAGE_ITCA, actividades); postJSON('/api/actividadesITCA', actividades, STORAGE_ITCA); }, [actividades]);
 
   const [filter, setFilter] = useState('');
   const filtered = useMemo(() => {
