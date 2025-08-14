@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 export const API_BASE = (import.meta as any).env?.VITE_API_URL || '';
 
 function withBase(url: string) {
@@ -63,4 +65,28 @@ export async function loadCatalogValues(type: string, defaultValues: string[]): 
   } catch {
     return defaultValues;
   }
+}
+
+export function useAuth() {
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('codisecUser');
+
+    if (storedToken) {
+      setToken(storedToken);
+    }
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Failed to parse codisecUser from localStorage", e);
+        setUser(null);
+      }
+    }
+  }, []);
+
+  return { token, user };
 }

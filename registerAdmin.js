@@ -1,20 +1,31 @@
-const fetch = require('node-fetch');
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
-async function registerAdmin() {
-    const response = await fetch('http://localhost:5175/api/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: 'codisec',
-            password: 'ccatter0312',
-            role: 'ADMIN',
-        }),
-    });
+const prisma = new PrismaClient();
 
-    const data = await response.json();
-    console.log(data);
+async function main() {
+  const username = 'codisecadm';
+  const password = 'ccatter0312';
+  const role = 'ADMIN';
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const admin = await prisma.user.create({
+    data: {
+      username,
+      password: hashedPassword,
+      role,
+    },
+  });
+
+  console.log('Admin user created:', admin);
 }
 
-registerAdmin();
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

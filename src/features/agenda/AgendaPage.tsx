@@ -208,7 +208,7 @@ const AgendaPage: React.FC = () => {
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded shadow w-full max-w-3xl p-4">
+          <div className="bg-white rounded shadow w-full max-w-3xl p-4 overflow-y-auto max-h-screen">
             <h2 className="text-lg font-semibold mb-3">{editingId ? 'Editar Evento' : 'Nuevo Evento'}</h2>
             <form onSubmit={saveEvent} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

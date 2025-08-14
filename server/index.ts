@@ -29,12 +29,8 @@ async function authRequired(req: express.Request, res: express.Response, next: e
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    // Check if decoded is a string or a JwtPayload, and if it has the expected properties
-    if (typeof decoded === 'string' || !(decoded as JwtPayload).sub || !Array.isArray((decoded as JwtPayload).permissions)) {
-      return res.status(401).json({ error: 'Invalid token payload' });
-    }
-    (req as any).user = decoded as { sub: number; permissions: string[] };
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as { sub: number; permissions: string[] };
+    (req as any).user = decoded;
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid token' });
@@ -256,7 +252,7 @@ app.post('/api/users/:id/roles', authRequired, permissionRequired('page:users'),
 // Static serving for uploads
 const uploadRoot = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadRoot)) fs.mkdirSync(uploadRoot);
-app.use('/uploads', express.static(uploadRoot);
+app.use('/uploads', express.static(uploadRoot));
 
 // Multer storage for ITCA evidences
 const itcaDir = path.join(uploadRoot, 'itca');
@@ -348,7 +344,7 @@ app.post('/api/catalog/:type', authRequired, permissionRequired('page:config/cat
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   await prisma.$transaction([
     prisma.catalogItem.deleteMany({ where: { type } }),
-    prisma.catalogItem.createMany({ data: parsed.data.map(c => ({ type, value: c.value, active: c.active ?? true, order: c.order ?? null })) }),
+    prisma.catalogItem.createMany({ data: parsed.data.map(c => ({ type, value: c.value, active: c.active ?? true, order: c.order })) }),
   ]);
   res.json({ ok: true });
 });

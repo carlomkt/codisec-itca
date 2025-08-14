@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 const LoginPage: React.FC = () => {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   async function onSubmit(e: React.FormEvent) {
@@ -12,8 +13,9 @@ const LoginPage: React.FC = () => {
       const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password }) });
       if (!res.ok) throw new Error('Credenciales inválidas');
       const data = await res.json();
+      const decoded = jwtDecode<{ sub: number; role: string }>(data.token);
       localStorage.setItem('authToken', data.token);
-      localStorage.setItem('codisecUser', JSON.stringify({ id: username, nombre: username }));
+      localStorage.setItem('codisecUser', JSON.stringify({ id: decoded.sub, nombre: username, role: decoded.role }));
       window.location.href = '/';
     } catch (err: any) {
       setError(err.message || 'Error de autenticación');

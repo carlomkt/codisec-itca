@@ -1,8 +1,8 @@
-import React, { useEffect, Suspense, lazy } from 'react';
-import { Link, Navigate, Route, Routes } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { AgendaPage } from './features/agenda';
-import { ensureDevToken } from './lib/api';
 import Layout from './components/Layout';
+import PrivateRoute from './components/PrivateRoute';
 
 const DistritosPage = lazy(() => import('./features/distritos/DistritosPage'));
 const ResponsablesPage = lazy(() => import('./features/responsables/ResponsablesPage'));
@@ -13,19 +13,9 @@ const InformesPage = lazy(() => import('./features/informes/InformesPage'));
 const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
 const LoginPage = lazy(() => import('./features/auth/LoginPage'));
 const CatalogPage = lazy(() => import('./features/config/CatalogPage'));
-const UsersPage = lazy(() => import('./features/users/UsersPage'));
+const UserManagementPage = lazy(() => import('./features/users/UserManagementPage'));
 
 const App: React.FC = () => {
-  useEffect(() => {
-    try {
-      const existing = localStorage.getItem('codisecUser');
-      if (!existing) {
-        localStorage.setItem('codisecUser', JSON.stringify({ id: 'seed', nombre: 'Usuario CODISEC', rol: 'admin' }));
-      }
-    } catch {}
-    ensureDevToken();
-  }, []);
-
   return (
     <Suspense fallback={<div className="p-6">Cargando…</div>}>
       <Routes>
@@ -33,20 +23,22 @@ const App: React.FC = () => {
         <Route
           path="/"
           element={
-            <Layout>
-              <DashboardPage />
-            </Layout>
+            <PrivateRoute>
+              <Layout>
+                <DashboardPage />
+              </Layout>
+            </PrivateRoute>
           }
         />
-        <Route path="/agenda" element={<Layout><AgendaPage /></Layout>} />
-        <Route path="/eventos" element={<Layout><EventosPage /></Layout>} />
-        <Route path="/actividades" element={<Layout><ActividadesPage /></Layout>} />
-        <Route path="/oficios" element={<Layout><OficiosPage /></Layout>} />
-        <Route path="/informes" element={<Layout><InformesPage /></Layout>} />
-        <Route path="/distritos" element={<Layout><DistritosPage /></Layout>} />
-        <Route path="/responsables" element={<Layout><ResponsablesPage /></Layout>} />
-        <Route path="/config/catalog" element={<Layout><CatalogPage /></Layout>} />
-        <Route path="/users" element={<Layout><UsersPage /></Layout>} />
+        <Route path="/agenda" element={<PrivateRoute><Layout><AgendaPage /></Layout></PrivateRoute>} />
+        <Route path="/eventos" element={<PrivateRoute><Layout><EventosPage /></Layout></PrivateRoute>} />
+        <Route path="/actividades" element={<PrivateRoute><Layout><ActividadesPage /></Layout></PrivateRoute>} />
+        <Route path="/oficios" element={<PrivateRoute><Layout><OficiosPage /></Layout></PrivateRoute>} />
+        <Route path="/informes" element={<PrivateRoute><Layout><InformesPage /></Layout></PrivateRoute>} />
+        <Route path="/distritos" element={<PrivateRoute><Layout><DistritosPage /></Layout></PrivateRoute>} />
+        <Route path="/responsables" element={<PrivateRoute><Layout><ResponsablesPage /></Layout></PrivateRoute>} />
+        <Route path="/config/catalog" element={<PrivateRoute><Layout><CatalogPage /></Layout></PrivateRoute>} />
+        <Route path="/users" element={<PrivateRoute><Layout><UserManagementPage /></Layout></PrivateRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
