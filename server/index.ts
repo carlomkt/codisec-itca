@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken'; // Added JwtPayload import
 import { PrismaClient } from '@prisma/client';
 import { ArrayOf } from './schemas.js';
 import multer from 'multer';
@@ -29,8 +29,12 @@ async function authRequired(req: express.Request, res: express.Response, next: e
   const token = header.startsWith('Bearer ') ? header.slice(7) : '';
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { sub: number; permissions: string[] };
-    (req as any).user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    // Check if decoded is a string or a JwtPayload, and if it has the expected properties
+    if (typeof decoded === 'string' || !(decoded as JwtPayload).sub || !Array.isArray((decoded as JwtPayload).permissions)) {
+      return res.status(401).json({ error: 'Invalid token payload' });
+    }
+    (req as any).user = decoded as { sub: number; permissions: string[] };
     return next();
   } catch {
     return res.status(401).json({ error: 'Invalid token' });
@@ -252,7 +256,7 @@ app.post('/api/users/:id/roles', authRequired, permissionRequired('page:users'),
 // Static serving for uploads
 const uploadRoot = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadRoot)) fs.mkdirSync(uploadRoot);
-app.use('/uploads', express.static(uploadRoot));
+app.use('/uploads', express.static(uploadRoot);
 
 // Multer storage for ITCA evidences
 const itcaDir = path.join(uploadRoot, 'itca');
