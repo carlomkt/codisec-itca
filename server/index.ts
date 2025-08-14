@@ -434,4 +434,45 @@ seedCatalog().catch(() => {});
 
 app.listen(PORT, () => {
   console.log(`API listening on http://0.0.0.0:${PORT}`);
+
+  // Temporary admin user creation on startup
+  (async () => {
+    const adminUsername = 'codisecadm';
+    const adminPassword = 'ccatter0312'; // This password will be hashed
+
+    try {
+      const existingAdmin = await prisma.user.findUnique({
+        where: { username: adminUsername },
+      });
+
+      if (!existingAdmin) {
+        const hashedPassword = await bcrypt.hash(adminPassword, 10);
+        const adminRole = await prisma.role.findUnique({ where: { name: 'ADMIN' } });
+
+        if (!adminRole) {
+          console.error('Role ADMIN not found. Please ensure roles are seeded.');
+          return;
+        }
+
+        const newAdmin = await prisma.user.create({
+          data: {
+            username: adminUsername,
+            password: hashedPassword,
+            roles: {
+              create: {
+                role: {
+                  connect: { id: adminRole.id },
+                },
+              },
+            },
+          },
+        });
+        console.log(`Admin user '${newAdmin.username}' created successfully.`);
+      } else {
+        console.log(`Admin user '${adminUsername}' already exists.`);
+      }
+    } catch (error) {
+      console.error('Error creating admin user on startup:', error);
+    }
+  })();
 });
