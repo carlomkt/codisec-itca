@@ -435,26 +435,28 @@ seedCatalog().catch(() => {});
 app.listen(PORT, () => {
   console.log(`API listening on http://0.0.0.0:${PORT}`);
 
-  // Temporary admin user creation on startup
+  // Temporary admin user creation/update on startup
   (async () => {
     const adminUsername = 'codisecadm';
     const adminPassword = 'ccatter0312'; // This password will be hashed
 
     try {
-      const existingAdmin = await prisma.user.findUnique({
+      let adminUser = await prisma.user.findUnique({
         where: { username: adminUsername },
+        include: { roles: true } // Include roles to check if ADMIN role is present
       });
 
-      if (!existingAdmin) {
-        const hashedPassword = await bcrypt.hash(adminPassword, 10);
-        const adminRole = await prisma.role.findUnique({ where: { name: 'ADMIN' } });
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      const adminRole = await prisma.role.findUnique({ where: { name: 'ADMIN' } });
 
-        if (!adminRole) {
-          console.error('Role ADMIN not found. Please ensure roles are seeded.');
-          return;
-        }
+      if (!adminRole) {
+        console.error('Role ADMIN not found. Please ensure roles are seeded.');
+        return;
+      }
 
-        const newAdmin = await prisma.user.create({
+      if (!adminUser) {
+        // Create new admin user if not exists
+        adminUser = await prisma.user.create({
           data: {
             username: adminUsername,
             password: hashedPassword,
@@ -467,12 +469,31 @@ app.listen(PORT, () => {
             },
           },
         });
-        console.log(`Admin user '${newAdmin.username}' created successfully.`);
+        console.log(`Admin user '${adminUser.username}' created successfully.`);
       } else {
-        console.log(`Admin user '${adminUsername}' already exists.`);
+        // Update existing admin user's password and ensure ADMIN role
+        const currentAdminRole = adminUser.roles.find(ur => ur.roleId === adminRole.id);
+
+        if (!currentAdminRole) {
+          // If ADMIN role is missing, add it
+          await prisma.userRole.create({
+            data: {
+              userId: adminUser.id,
+              roleId: adminRole.id,
+            },
+          });
+          console.log(`Admin user '${adminUser.username}' assigned ADMIN role.`);
+        }
+
+        // Always update password to ensure it's 'ccatter0312'
+        await prisma.user.update({
+          where: { id: adminUser.id },
+          data: { password: hashedPassword },
+        });
+        console.log(`Admin user '${adminUser.username}' password updated and ADMIN role ensured.`);
       }
     } catch (error) {
-      console.error('Error creating admin user on startup:', error);
+      console.error('Error creating/updating admin user on startup:', error);
     }
   })();
 });
