@@ -85,33 +85,61 @@ app.post('/api/register', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body || {};
-  const user = await prisma.user.findUnique({
-    where: { username },
-    include: {
-      roles: {
-        include: {
-          role: {
-            include: {
-              permissions: {
-                include: {
-                  permission: true,
+  console.log('--- Login Attempt Start ---');
+  try {
+    const { username, password } = req.body || {};
+    console.log(`Received login request for username: '${username}'`);
+
+    if (!username || !password) {
+      console.log('Login failed: Username or password not provided in request body.');
+      return res.status(400).json({ error: 'Username and password required' });
+    }
+    
+    console.log('Searching for user in database...');
+    const user = await prisma.user.findUnique({
+      where: { username },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (user && (await bcrypt.compare(password, user.password))) {
-    const permissions = user.roles.flatMap(ur => ur.role.permissions.map(rp => rp.permission.name));
-    const token = signToken({ sub: user.id, permissions });
-    return res.json({ token });
+    if (!user) {
+      console.log(`Login failed: User '${username}' not found in database.`);
+      console.log('--- Login Attempt End ---');
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+    
+    console.log(`User '${username}' found. Comparing passwords.`);
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (passwordMatch) {
+      console.log(`Password for user '${username}' is correct. Login successful.`);
+      const permissions = user.roles.flatMap(ur => ur.role.permissions.map(rp => rp.permission.name));
+      const token = signToken({ sub: user.id, permissions });
+      console.log('--- Login Attempt End ---');
+      return res.json({ token });
+    } else {
+      console.log(`Login failed: Password mismatch for user '${username}'.`);
+      console.log('--- Login Attempt End ---');
+      return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+  } catch (error) {
+    console.error('A critical error occurred during the login process:', error);
+    console.log('--- Login Attempt End ---');
+    return res.status(500).json({ error: 'Internal server error' });
   }
-
-  return res.status(401).json({ error: 'Credenciales inválidas' });
 });
 
 // User management endpoints
