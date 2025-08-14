@@ -505,14 +505,12 @@ app.listen(PORT, () => {
           console.log(`Admin user '${adminUser.username}' assigned ADMIN role.`);
         }
 
-        // Always update password to ensure it's the correct one
-        if (!(await bcrypt.compare(adminPassword, adminUser.password))) {
-          await prisma.user.update({
-            where: { id: adminUser.id },
-            data: { password: hashedPassword },
-          });
-          console.log(`Admin user '${adminUser.username}' password updated.`);
-        }
+        // Force update password to ensure it's the correct one
+        await prisma.user.update({
+          where: { id: adminUser.id },
+          data: { password: hashedPassword },
+        });
+        console.log(`Admin user '${adminUser.username}' password forcefully updated.`);
       }
        console.log(`Admin user '${adminUsername}' is configured correctly.`);
     } catch (error) {
