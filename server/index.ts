@@ -468,11 +468,12 @@ app.listen(PORT, () => {
               },
             },
           },
+          include: { roles: true } // <--- Added this line
         });
         console.log(`Admin user '${adminUser.username}' created successfully.`);
       } else {
         // Update existing admin user's password and ensure ADMIN role
-        const currentAdminRole = adminUser.roles.find(ur => ur.roleId === adminRole.id);
+        const currentAdminRole = adminUser!.roles.find(ur => ur.roleId === adminRole.id);
 
         if (!currentAdminRole) {
           // If ADMIN role is missing, add it
